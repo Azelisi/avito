@@ -1,5 +1,7 @@
 import sqlite3
 import asyncio
+from time import sleep
+
 from aiogram.filters import Command
 from config import telegram_token, url_Avito
 from bs4 import BeautifulSoup
@@ -9,62 +11,66 @@ from selenium import webdriver
 bot = Bot(token=telegram_token)
 dp = Dispatcher()
 
+options = webdriver.ChromeOptions()
+options.add_argument("--headless")
+
+# Создаем подключение к базе данных
+conn = sqlite3.connect('ads.db')
+cursor = conn.cursor()
+
+# Создаем таблицу, если её нет
+cursor.execute('''
+       CREATE TABLE IF NOT EXISTS ads (
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           text TEXT
+       )
+   ''')
+conn.commit()
+
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     await message.answer("Привет! Я бот для уведомлений об объявлениях Авито. \n\nСейчас я начну отправлять объявления")
+    print("User start")
 
     while True:
-        await check_ads(message.chat.id)
+        try:
+            await check_ads(message.chat.id)
+        except Exception as errorException:
+            print(f"Произошла ошибка: {errorException}")
+            print("Перезапуск программы через 30 секунд...")
+            sleep(30)  # Подождем минуту перед следующей попыткой
 
 
 async def check_ads(chat_id):
     url = url_Avito
-
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
+    # Инициализация веб-драйвера
     driver = webdriver.Chrome(options=options)
+    try:
 
-    driver.get(url)
-    html = driver.page_source
-    bs = BeautifulSoup(html, "html.parser")
+        driver.get(url)
+        html = driver.page_source
+        bs = BeautifulSoup(html, "html.parser")
 
-    # Найти все блоки с информацией о заявках
-    ad_blocks = bs.find_all("div", class_="iva-item-content-rejJg")
+        # Найти все блоки с информацией о заявках
+        ad_blocks = bs.find_all("div", class_="iva-item-content-rejJg")
 
-    # Проход по каждому блоку с информацией о заявке
-    # for ad_block in ad_blocks
-    # Здесь вы можете извлекать нужную информацию из блока
-    # Например, название и цену
-    img = bs.find("img", class_="photo-slider-image-YqMGj")
-    title = bs.find("h3", class_="styles-module-size_l_compensated-OK6a6")
-    price = bs.find("div", class_="iva-item-priceStep-uq2CQ")
-    description = bs.find("div", class_="iva-item-descriptionStep-C0ty1")
-    street = bs.find("div", class_="geo-root-zPwRk")
-    time = bs.find("div", class_="iva-item-dateInfoStep-_acjp")
-    link_product_source = bs.find("div", class_="iva-item-title-py3i_")
-    link_product = link_product_source.find("a", class_="styles-module-root-QmppR")
-
-    # print("Картинка: ", img["src"])
-    # print("Название: " + title.text)
-    # print("Цена: " + price.text)
-    # print("Описание: " + description.text)
-    # print("Район: " + street.text)
-    # print("Время публикации: " + time.text)
-    # print("Ссылка: " + "https://www.avito.ru" + link_product["href"])
-
-    # Создаем подключение к базе данных
-    conn = sqlite3.connect('ads.db')
-    cursor = conn.cursor()
-
-    # Создаем таблицу, если её нет
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS ads (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            text TEXT
-        )
-    ''')
-    conn.commit()
+        # Проход по каждому блоку с информацией о заявке
+        # for ad_block in ad_blocks
+        # Здесь вы можете извлекать нужную информацию из блока
+        # Например, название и цену
+        img = bs.find("img", class_="photo-slider-image-YqMGj")
+        title = bs.find("h3", class_="styles-module-size_l_compensated-OK6a6")
+        price = bs.find("div", class_="iva-item-priceStep-uq2CQ")
+        description = bs.find("div", class_="iva-item-descriptionStep-C0ty1")
+        street = bs.find("div", class_="geo-root-zPwRk")
+        # time = bs.find("div", class_="iva-item-dateInfoStep-_acjp") Пока не работает
+        link_product_source = bs.find("div", class_="iva-item-title-py3i_")
+        link_product = link_product_source.find("a", class_="styles-module-root-QmppR")
+        print("Парсер работет")
+    finally:
+        # Закрытие веб-драйвера в блоке finally, чтобы гарантировать его закрытие
+        driver.quit()
 
     def is_ad_in_database(ad_text):
         # Проверяем, есть ли объявление в базе данных
@@ -114,4 +120,9 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        print(f"Произошла ошибка при запуске программы: {e}")
+        print("Перезапуск программы через 60 секунд...")
+        sleep(60)  # Подождем минуту перед следующей попыткой
