@@ -23,7 +23,7 @@ async def get_talk(message: Message, state: FSMContext):
 @router.callback_query(MyCallBack.filter(F.foo == 'return_to_main'))
 async def get_to_main(query: CallbackQuery, callback_data: MyCallBack): 
     await query.answer("Основное меню")
-    await query.message.edit_text("Пожалуйста, выбери, что ты хочешь сделать", reply_markup=menu_kb)
+    await query.message.edit_text("Пожалуйста, выберs, что ты хочешь сделать", reply_markup=menu_kb)
 
 #Роутер информации для пользователя..
     
