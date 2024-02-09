@@ -2,9 +2,9 @@ from aiogram import F
 from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery, ContentType
 from aiogram.fsm.context import FSMContext
 
-from src.config.cfg import bot
-from src.keyboards.inline import return_to_main_kb, MyCallBack
-from src.handlers.basic import router
+from ..config.cfg import bot
+from ..keyboards.inline import return_to_main_kb, MyCallBack
+from ..handlers.basic import router
 
 import asyncio
 
