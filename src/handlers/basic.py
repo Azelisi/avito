@@ -11,44 +11,52 @@ import asyncio
 
 router = Router()
 
-#Роутер основного меню..
+
+# Роутер основного меню..
 
 @router.message(F.text == '/start')
-async def get_talk(message: Message, state: FSMContext): 
+async def get_talk(message: Message, state: FSMContext):
     await message.reply("Привет, я бот-парсер!", reply_markup=menu_kb)
-    await state.set_state(MainStateGroup.main) 
+    await state.set_state(MainStateGroup.main)
 
-#Роутер возвращения в основное меню..
+
+# Роутер возвращения в основное меню..
 
 @router.callback_query(MyCallBack.filter(F.foo == 'return_to_main'))
-async def get_to_main(query: CallbackQuery, callback_data: MyCallBack): 
+async def get_to_main(query: CallbackQuery, callback_data: MyCallBack):
     await query.answer("Основное меню")
     await query.message.edit_text("Пожалуйста, выбери, что ты хочешь сделать", reply_markup=menu_kb)
 
-#Роутер информации для пользователя..
-    
-@router.callback_query(MyCallBack.filter(F.foo == 'info'))
-async def callback_info(query: CallbackQuery, callback_data: MyCallBack): 
-    await query.answer("Информация о парсинге") 
-    await query.message.edit_text('Важно знать перед использованием!\nВот как выполняется парсинг', reply_markup=return_to_main_kb)
 
-#Роутер для пополнения счёта пользователя..
+# Роутер информации для пользователя..
+
+@router.callback_query(MyCallBack.filter(F.foo == 'info'))
+async def callback_info(query: CallbackQuery, callback_data: MyCallBack):
+    await query.answer("Информация о парсинге")
+    await query.message.edit_text('Важно знать перед использованием!\nВот как выполняется парсинг',
+                                  reply_markup=return_to_main_kb)
+
+
+# Роутер для пополнения счёта пользователя..
 
 @router.callback_query(MyCallBack.filter(F.foo == 'pay'))
-async def top_up_user(query: CallbackQuery, callback_data: MyCallBack): 
-    await query.message.edit_text("Выбери сколько токенов ты хочешь купить\n1 токен - <b>499 RUB</b>\n5 токенов - <b>799 RUB</b>\n10 токенов - <b>1399 RUB</b>", parse_mode='HTML',reply_markup=how_many_tokens)
+async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
+    await query.message.edit_text(
+        "Выбери сколько токенов ты хочешь купить\n1 токен - <b>499 RUB</b>\n5 токенов - <b>799 RUB</b>\n10 токенов - <b>1399 RUB</b>",
+        parse_mode='HTML', reply_markup=how_many_tokens)
 
 
-#Роутер парсинга..
-    
+# Роутер парсинга..
+
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
-async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack, state: FSMContext): 
-    if random.randint(1,2) == 1:  
+async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack, state: FSMContext):
+    if random.randint(1, 2) == 1:
         await query.message.edit_text('Пожалуйста скинь ссылку для парса', reply_markup=return_to_main_kb)
-    else: 
-        await query.message.edit_text("Извини, но на твоём балансе недостаточно средств для выполнения процедуры парса", reply_markup=payment_kb)
-     
+        
+    else:
+        await query.message.edit_text("Извини, но на твоём балансе недостаточно средств для выполнения процедуры парса",
+                                      reply_markup=payment_kb)
 
 # @router.callback_query(SwitchStatesGroup.main)
 # async def callback_handler(query: types.CallbackQuery, state: FSMContext): 
-#     await state.set_state(ParsingAvito.main) 
+#     await state.set_state(ParsingAvito.main)
