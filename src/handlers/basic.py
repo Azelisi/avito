@@ -47,7 +47,6 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
 
 
 # Роутер парсинга..
-
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
 async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack, state: FSMContext):
     if random.randint(1, 2) == 1:
@@ -58,5 +57,5 @@ async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack,
                                       reply_markup=payment_kb)
 
 # @router.callback_query(SwitchStatesGroup.main)
-# async def callback_handler(query: types.CallbackQuery, state: FSMContext): 
+# async def callback_handler(query: types.CallbackQuery, state: FSMContext):
 #     await state.set_state(ParsingAvito.main)

@@ -4,26 +4,22 @@ import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
-from src.config.cfg import url_Avito
+from avito.src.config.cfg import url_Avito
+from database import create_table, is_ad_in_database, save_ad_to_database
+
 
 # Создаем подключение к базе данных
 conn = sqlite3.connect('ads.db')
 cursor = conn.cursor()
 
-# Создаем таблицу, если её нет
-cursor.execute('''
-       CREATE TABLE IF NOT EXISTS ads (
-           id INTEGER PRIMARY KEY AUTOINCREMENT,
-           text TEXT
-       )
-   ''')
-conn.commit()
+create_table()
 
 url = url_Avito
 options = webdriver.ChromeOptions()
 options.add_argument("--headless")
 
-def pars(): 
+
+def pars():
     while True:
         try:
             driver = webdriver.Chrome(options=options)
@@ -49,25 +45,6 @@ def pars():
 
             # Закрытие веб-драйвера
             driver.quit()
-
-
-            def is_ad_in_database(ad_text):
-                # Проверяем, есть ли объявление в базе данных
-                cursor.execute('SELECT * FROM ads WHERE text=?', (ad_text,))
-                result = cursor.fetchone()
-
-                return result is not None
-
-
-            def save_ad_to_database(ad_text):
-                # Удаляем последнюю запись
-                cursor.execute('SELECT id FROM ads ORDER BY id DESC LIMIT 1')
-                last_id = cursor.fetchone()
-
-                # Сохраняем объявление в базе данных
-                cursor.execute('INSERT INTO ads (text) VALUES (?)', (ad_text,))
-                conn.commit()
-
 
             # Проход по каждому блоку с информацией о заявке
             for ad_block in ad_blocks:
@@ -95,6 +72,9 @@ def pars():
             print(f"Произошла ошибка: {errorException}")
             print("Перезапуск программы через 30 секунд...")
             time.sleep(30)  # Подождем перед следующей попыткой
+
+
+conn.close()
 
 pars()
 
