@@ -65,6 +65,9 @@ def pars():
                     # Отправляем уведомление в Telegram
                     print(f"Новая запись: {title.text}\nЦена: {price.text}")
                     save_ad_to_database(ad_text)
+
+                    # Здесь скрипт который отправляет пользователям сообщение с ad_text
+
                     print("Запись в базу")
                     time.sleep(40)
 
