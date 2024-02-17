@@ -4,7 +4,7 @@ import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
-from avito.src.config.cfg import url_Avito
+from src.config.cfg import url_Avito
 from database import create_table, is_ad_in_database, save_ad_to_database
 
 

@@ -1,7 +1,7 @@
 from aiocron import crontab
 
-from avito.src.config.cfg import bot
-from avito.src.parser.database import get_all_ads
+from src.config.cfg import bot
+from src.parser.database import get_all_ads
 
 
 # Задача будет выполняться каждую минуту
