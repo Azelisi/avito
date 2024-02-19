@@ -9,14 +9,14 @@ cb_info = MyCallBack(foo='info', bar=1)
 cb_return = MyCallBack(foo='return_to_main', bar=1)
 cb_pars = MyCallBack(foo='parsing', bar=1)
 cb_payment = MyCallBack(foo='pay', bar=1)
-cb_tokens_1 = MyCallBack(foo='token', bar=1)
-cb_tokens_5 = MyCallBack(foo='token', bar=5)
-cb_tokens_10 = MyCallBack(foo='token', bar=10)
+cb_sub_7 = MyCallBack(foo='sub', bar=7)
+cb_sub_14 = MyCallBack(foo='sub', bar=14)
+cb_sub_30 = MyCallBack(foo='sub', bar=30)
 
-how_many_tokens = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text= "1 токен", callback_data=MyCallBack(foo='token', bar=1).pack())],
-    [InlineKeyboardButton(text= "5 токенов", callback_data=MyCallBack(foo='token', bar=5).pack())], 
-    [InlineKeyboardButton(text= "10 токенов", callback_data=MyCallBack(foo='token', bar=10).pack())]
+how_many_day_sub = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text= "7 дней", callback_data=MyCallBack(foo='sub', bar=7).pack())],
+    # [InlineKeyboardButton(text= "14 дней", callback_data=MyCallBack(foo='sub', bar=14).pack())], 
+    # [InlineKeyboardButton(text= "30 дней", callback_data=MyCallBack(foo='sub', bar=30).pack())]
 ])
 
 menu_kb = InlineKeyboardMarkup(inline_keyboard=[

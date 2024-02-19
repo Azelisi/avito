@@ -9,24 +9,24 @@ from src.handlers.basic import router
 import asyncio
 
 ## Обработчик токенов..
-@router.callback_query(MyCallBack.filter(F.foo == 'tokens' and F.bar == 1))
+@router.callback_query(MyCallBack.filter(F.foo == 'sub' and F.bar == 30))
 async def top_up_user(query: CallbackQuery, callback_data: MyCallBack): 
-    await query.message.edit_text('Неплохой выбор\nПосле оплаты нажми кнопку "Назад"', reply_markup=return_to_main_kb)
+    await query.message.edit_text('Отлично!\nПосле оплаты нажми кнопку "Назад"', reply_markup=return_to_main_kb)
     await bot.send_invoice(
         chat_id= query.message.chat.id,
         title="Подписка",
-        description="Подписка на 1 месяц",
+        description="Подписка на 7 дней",
         payload=f'test-invoice-payload',
         provider_token='381764678:TEST:68132',
         currency='RUB',
         prices=[
             LabeledPrice(
-                label='Месяц подписки',
+                label='7 дней подписки',
                 amount=599*100
             )
         ],
         max_tip_amount=1000*1000,
-        suggested_tip_amounts=[100*100,300*100],
+        suggested_tip_amounts=[],
         start_parameter=f'',
         provider_data=None,
         need_email=False,
@@ -46,15 +46,19 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
 
 @router.pre_checkout_query()
 async def process_pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
+    await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
 
-    if pre_checkout_query.invoice_payload != "test_payload":
-        await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=False, error_message="errors gere...")
-    else:
-        await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
-
-@router.message(F.content_type == ContentType.SUCCESSFUL_PAYMENT)
+@router.message(F.successful_payment)
 async def succesfull_payment(message: Message):
     print("Успешная покупка")
+    user_id = message.from_user.id
+    user_subtime = 24 * 7 # 7 дней подписки (Длительность подписки) 
+    user_substatus = True # (Статус подписки (подписан или нет))
+
+
+    #Записали user_id в бд и установили время окончания 
+
     msg = f"Спасибо за покупку {message.successful_payment.total_amount // 100} {message.successful_payment.currency}!"
+
     await message.answer(msg)
     await message.edit_text("Пожалуйста, выбери, что ты хочешь сделать", reply_markup=menu_kb)
