@@ -1,4 +1,5 @@
 from src.config.cfg import bot, dp
+from src.config.timer import timer_db
 from src.handlers import basic, payments
 from src.parser.parser import pars
 
@@ -10,7 +11,7 @@ async def on_startup(dispatcher):
     print("Бот запущен")
 
 
-async def main():   
+async def main():
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s - [%(levelname)s] - %(name)s"
                                "(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
