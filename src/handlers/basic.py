@@ -3,7 +3,6 @@ from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery
 from aiogram.fsm.context import FSMContext
 
 from src.config.cfg import bot
-from src.config.statesgroup import MainStateGroup, ParsingAvito
 from src.keyboards.inline import menu_kb, return_to_main_kb, payment_kb, how_many_day_sub, MyCallBack
 from src.parser.parser import pars
 
@@ -19,7 +18,6 @@ result_pars = pars()
 @router.message(F.text == '/start')
 async def get_talk(message: Message, state: FSMContext):
     await message.reply("Привет, я бот-парсер!", reply_markup=menu_kb)
-    await state.set_state(MainStateGroup.main)
 
 
 # Роутер возвращения в основное меню..
@@ -51,7 +49,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
 # Роутер парсинга..
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
 async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack, state: FSMContext):
-    if user_substatus == True:
+    if 1:
         await query.message.edit_text('Пожалуйста скинь ссылку для парса', reply_markup=return_to_main_kb)
     else:
         await query.message.edit_text("Извини, но на твоём балансе недостаточно средств для выполнения процедуры парса",
