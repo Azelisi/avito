@@ -1,21 +1,8 @@
 import sqlite3
 
 conn = sqlite3.connect('ads.db')
-conn_sub = sqlite3.connect('subscriptions.db')
 cursor = conn.cursor()
 
-
-# Создание таблицы subscriptions, если она не существует
-def create_table_user():
-    # Создаем таблицу подписок
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS subscriptions (
-            user_id INTEGER PRIMARY KEY,
-            expiration_time INTEGER,
-            is_subscribed BOOLEAN
-        )
-    ''')
-    conn.commit()
 
 
 # Создание таблицы ads, если она не существует
