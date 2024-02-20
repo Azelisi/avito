@@ -1,3 +1,5 @@
+import sqlite3
+
 from aiogram import F, types, Router
 from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery, ContentType
 from aiogram.fsm.context import FSMContext
@@ -49,9 +51,17 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
 
 
 # Роутер парсинга..
+# Проверка в базе на то что пользователь подписан (то есть, смотрим в базу данных user_id и sub_status и если sub_status равен 1 то всё заебисб)
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
 async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack, state: FSMContext):
-    if random.randint(1, 2) == 1:
+    user_id = query.from_user.id
+    conn_sub = sqlite3.connect('subscriptions.db')
+    cursor = conn_sub.cursor()
+
+    cursor.execute('SELECT user_substatus FROM subscriptions WHERE user_id=?', (user_id,))
+    result = cursor.fetchone()
+
+    if result and result[0] == 1:
         await query.message.edit_text('Пожалуйста скинь ссылку для парса', reply_markup=return_to_main_kb)
     else:
         await query.message.edit_text("Извини, но на твоём балансе недостаточно средств для выполнения процедуры парса",
