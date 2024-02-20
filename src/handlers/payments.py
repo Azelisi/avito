@@ -154,7 +154,7 @@ async def succesfull_payment(message: Message):
     # Ниже выполняет SQL-запрос для вставки или обновления записи в таблице 'subscriptions'. Используется оператор
     # INSERT OR REPLACE INTO, который вставляет новую запись, если запись с таким user_id не существует, или заменяет
     # существующую запись, если она уже есть. Запрос содержит параметризованные значения (?, ?, ?),
-    # которые заменяются значениями переменных user_id, expiration_time и user_substatus. Таким образом, происходит
+    # которые заменяются значениями переменных user_id, user_subtime и user_substatus. Таким образом, происходит
     # вставка или обновление информации о подписке пользователя в базе данных.
     cursor.execute('''
             INSERT OR REPLACE INTO subscriptions (user_id, user_subtime, user_substatus)
