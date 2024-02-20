@@ -12,7 +12,7 @@ import random
 import asyncio
 
 router = Router()
-result_pars = pars()
+# result_pars = pars()
 
 # Роутер основного меню..
 
@@ -44,8 +44,7 @@ async def callback_info(query: CallbackQuery, callback_data: MyCallBack):
 @router.callback_query(MyCallBack.filter(F.foo == 'pay'))
 async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
     await query.message.edit_text(
-        "Оформить подписку\n7 дней - <b>599 RUB</b>",
-        # "Оформить подписку\n7 дней - <b>599 RUB</b>\n14 дней - <b>899 RUB</b>\n30 дней - <b>1699 RUB</b>",
+        "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
         parse_mode='HTML', reply_markup=how_many_day_sub)
 
 

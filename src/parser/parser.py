@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 
 from src.config.cfg import url_Avito
-from database import create_table, is_ad_in_database, save_ad_to_database
+from src.parser.database import create_table, is_ad_in_database, save_ad_to_database
 
 # Создаем подключение к базе данных
 conn = sqlite3.connect('ads.db')

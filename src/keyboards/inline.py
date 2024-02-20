@@ -15,8 +15,9 @@ cb_sub_30 = MyCallBack(foo='sub', bar=30)
 
 how_many_day_sub = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text= "7 дней", callback_data=MyCallBack(foo='sub', bar=7).pack())],
-    # [InlineKeyboardButton(text= "14 дней", callback_data=MyCallBack(foo='sub', bar=14).pack())], 
-    # [InlineKeyboardButton(text= "30 дней", callback_data=MyCallBack(foo='sub', bar=30).pack())]
+    [InlineKeyboardButton(text= "14 дней", callback_data=MyCallBack(foo='sub', bar=14).pack())], 
+    [InlineKeyboardButton(text= "30 дней", callback_data=MyCallBack(foo='sub', bar=30).pack())],
+    [InlineKeyboardButton(text= "Назад", callback_data=MyCallBack(foo='return_to_main', bar=1).pack())]
 ])
 
 menu_kb = InlineKeyboardMarkup(inline_keyboard=[
