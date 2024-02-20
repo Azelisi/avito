@@ -4,13 +4,8 @@ import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
-<<<<<<< HEAD
 from src.config.cfg import url_Avito
-from src.parser.database import create_table, is_ad_in_database, save_ad_to_database
-=======
-from avito.src.config.cfg import url_Avito
-from avito.src.parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
->>>>>>> abee360a52a8e52256726771bd8f0609c7a84eef
+from src.parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
 
 # Создаем подключение к базе данных
 conn = sqlite3.connect('ads.db')

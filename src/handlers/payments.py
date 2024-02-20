@@ -88,7 +88,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
     await bot.send_invoice(
         chat_id= query.message.chat.id,
         title="Подписка",
-        description="Подписка на 14 дней",
+        description="Подписка на 30 дней",
         payload=f'test-invoice-payload',
         provider_token='381764678:TEST:68132',
         currency='RUB',
@@ -138,20 +138,18 @@ async def succesfull_payment(message: Message):
         print(f"Ключ {message.successful_payment.total_amount} отсутствует в словаре.")
     user_subtime = 24 * user_subdays # ?? дней подписки (Длительность подписки) 
     user_substatus = True # (Статус подписки (подписан или нет))
-     # Рассчитываем время окончания подписки
-    expiration_time = int((datetime.now() + timedelta(seconds=user_subtime)).timestamp())
     # Записали user_id в бд и установили время окончания
     conn = sqlite3.connect('subscriptions.db')
     cursor = conn.cursor()
     # Ниже выполняет SQL-запрос для вставки или обновления записи в таблице 'subscriptions'. Используется оператор
     # INSERT OR REPLACE INTO, который вставляет новую запись, если запись с таким user_id не существует, или заменяет
     # существующую запись, если она уже есть. Запрос содержит параметризованные значения (?, ?, ?),
-    # которые заменяются значениями переменных user_id, expiration_time и user_substatus. Таким образом, происходит
+    # которые заменяются значениями переменных user_id, user_subtime и user_substatus. Таким образом, происходит
     # вставка или обновление информации о подписке пользователя в базе данных.
     cursor.execute('''
-            INSERT OR REPLACE INTO subscriptions (user_id, expiration_time, is_subscribed)
+            INSERT OR REPLACE INTO subscriptions (user_id, user_subtime, is_subscribed)
             VALUES (?, ?, ?)
-        ''', (user_id, expiration_time, user_substatus))
+        ''', (user_id, user_subtime, user_substatus))
     conn.commit()
     conn.close()
 

@@ -2,17 +2,17 @@ from aiogram import F, types, Router
 from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery, ContentType
 from aiogram.fsm.context import FSMContext
 
-from avito.src.config.cfg import bot
-from avito.src.config.statesgroup import MainStateGroup, ParsingAvito
-from avito.src.keyboards.inline import menu_kb, return_to_main_kb, payment_kb, how_many_day_sub, MyCallBack
-from avito.src.parser.parser import pars
+from src.config.cfg import bot
+from src.config.statesgroup import MainStateGroup, ParsingAvito
+from src.keyboards.inline import menu_kb, return_to_main_kb, payment_kb, how_many_day_sub, MyCallBack
+from src.parser.parser import pars
 
 
 import random
 import asyncio
 
 router = Router()
-# result_pars = pars()
+result_pars = pars()
 
 # Роутер основного меню..
 
@@ -51,7 +51,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
 # Роутер парсинга..
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
 async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack, state: FSMContext):
-    if random.randint(1, 2) == 1:
+    if user_substatus == True:
         await query.message.edit_text('Пожалуйста скинь ссылку для парса', reply_markup=return_to_main_kb)
     else:
         await query.message.edit_text("Извини, но на твоём балансе недостаточно средств для выполнения процедуры парса",

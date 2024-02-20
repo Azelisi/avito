@@ -11,7 +11,7 @@ def create_table_user():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS subscriptions (
             user_id INTEGER PRIMARY KEY,
-            expiration_time INTEGER,
+            user_subtime INTEGER,
             is_subscribed BOOLEAN
         )
     ''')
