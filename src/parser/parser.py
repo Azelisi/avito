@@ -5,13 +5,16 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 
 from src.config.cfg import url_Avito
-from database import create_table, is_ad_in_database, save_ad_to_database
+from src.parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
+
+from src.config.cfg import url_Avito
+from src.parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
 
 # Создаем подключение к базе данных
 conn = sqlite3.connect('ads.db')
 cursor = conn.cursor()
 
-create_table()
+create_table_ads()
 
 url = url_Avito
 options = webdriver.ChromeOptions()

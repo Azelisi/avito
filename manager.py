@@ -1,6 +1,7 @@
 from src.config.cfg import bot, dp
 from src.handlers import basic, payments
 from src.parser.parser import pars
+
 import logging
 import asyncio
 
@@ -9,7 +10,7 @@ async def on_startup(dispatcher):
     print("Бот запущен")
 
 
-async def main():
+async def main():   
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s - [%(levelname)s] - %(name)s"
                                "(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
@@ -26,4 +27,4 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
-    pars()
+    # pars()
