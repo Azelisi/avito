@@ -67,6 +67,7 @@ async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack,
         await query.message.edit_text("Извини, но на твоём балансе недостаточно средств для выполнения процедуры парса",
                                       reply_markup=payment_kb)
 
+
 # @router.callback_query(SwitchStatesGroup.main)
 # async def callback_handler(query: types.CallbackQuery, state: FSMContext):
 #     await state.set_state(ParsingAvito.main)
