@@ -16,7 +16,6 @@ async def main():
                         format="%(asctime)s - [%(levelname)s] - %(name)s"
                                "(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
                         )
-
     await bot.delete_webhook(drop_pending_updates=True)
     dp.startup.register(on_startup)
     dp.include_routers(basic.router)
