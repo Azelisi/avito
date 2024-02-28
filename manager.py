@@ -1,6 +1,5 @@
 from src.config.cfg import bot, dp
-from src.config.timer import timer_db
-from src.handlers import basic, payments
+from src.handlers import basic
 from src.parser.parser import pars
 
 import logging
@@ -27,4 +26,5 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
-    # pars()
+    while True:
+        pars()
