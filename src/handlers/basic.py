@@ -8,7 +8,6 @@ from src.config.cfg import bot
 from src.keyboards.inline import menu_kb, return_to_main_kb, payment_kb, how_many_day_sub, MyCallBack
 from src.parser.parser import pars
 from src.parser.database import get_all_ads
-from src.config.states import ParserStates
 
 
 
@@ -28,10 +27,10 @@ async def get_talk(message: Message, state: FSMContext):
 # Роутер возвращения в основное меню..
 
 @router.callback_query(MyCallBack.filter(F.foo == 'return_to_main'))
-async def get_to_main(query: CallbackQuery, callback_data: MyCallBack, state: FSMContext):
-    await state.set_state(ParserStates.main_menu)
+async def get_to_main(query: CallbackQuery, callback_data: MyCallBack):
     await query.answer("Основное меню")
     await query.message.edit_text("Пожалуйста, выбери, что ты хочешь сделать", reply_markup=menu_kb)
+    print(f'{query.data} and {type(query.data)}')
 
 
 # Роутер информации для пользователя..
@@ -41,6 +40,7 @@ async def callback_info(query: CallbackQuery, callback_data: MyCallBack):
     await query.answer("Информация о парсинге")
     await query.message.edit_text('Важно знать перед использованием!\nВот как выполняется парсинг',
                                   reply_markup=return_to_main_kb)
+    print(f'{query.data} and {type(query.data)}')
 
 
 # Роутер для пополнения счёта пользователя..
@@ -55,7 +55,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
 # Роутер парсинга..
 # Проверка в базе на то что пользователь подписан (то есть, смотрим в базу данных user_id и sub_status и если sub_status равен 1 то всё заебисб)
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
-async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack, state: FSMContext):
+async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack):
     user_id = query.from_user.id
     conn_sub = sqlite3.connect('subscriptions.db')
     cursor = conn_sub.cursor()
@@ -64,20 +64,25 @@ async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack,
     result = cursor.fetchone()
 
     if result and result[0] == 1:
-        await state.set_state(ParserStates.parsing)
+
         new_ad_text = get_all_ads()
         old_ad_text = None
 
         while True:
-            if new_ad_text != [] and (old_ad_text is None or old_ad_text[0] != new_ad_text[0]):  # Проверка состояния бота, которое указал пользователь
+            input_string = query.data
+            parts = input_string.split(":") 
+            middle_word = parts[1]
+            print(middle_word)
+            if middle_word == 'return_to_main':
+                break  # Выходим из цикла при нажатии кнопки "Назад"
+            else:
                 old_ad_text = new_ad_text 
                 await query.message.answer(f"{new_ad_text[0]}", reply_markup=return_to_main_kb)
-            else:
-                await asyncio.sleep(1)  # Добавим небольшую задержку, чтобы не нагружать процессор
-            # Проверяем, была ли нажата кнопка "Назад"
-            if await state.get_state() == 'main_menu':
-                break  # Если кнопка нажата, выходим из цикла
+                await asyncio.sleep(15)
     else:
         await query.message.edit_text("Извини, но на твоём балансе недостаточно средств для выполнения процедуры парса",
                                       reply_markup=payment_kb)
 
+# @router.callback_query(SwitchStatesGroup.main)
+# async def callback_handler(query: types.CallbackQuery, state: FSMContext):
+#     await state.set_state(ParsingAvito.main)
