@@ -4,7 +4,6 @@ conn = sqlite3.connect('ads.db')
 cursor = conn.cursor()
 
 
-
 # Создание таблицы ads, если она не существует
 def create_table_ads():
     cursor.execute('''

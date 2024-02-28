@@ -82,5 +82,4 @@ def pars():
 
 
 conn.close()
-
 pars()

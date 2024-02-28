@@ -151,6 +151,14 @@ async def succesfull_payment(message: Message):
            )
        ''')
     conn_sub.commit()
+    # Получаем текущее значение user_subtime из базы данных
+    cursor.execute('SELECT user_subtime FROM subscriptions WHERE user_id=?', (user_id,))
+    current_subtime = cursor.fetchone()
+
+    if current_subtime is not None:
+        # Если пользователь уже есть в базе, прибавляем новое значение к текущему
+        user_subtime += current_subtime[0]
+
     # Ниже выполняет SQL-запрос для вставки или обновления записи в таблице 'subscriptions'. Используется оператор
     # INSERT OR REPLACE INTO, который вставляет новую запись, если запись с таким user_id не существует, или заменяет
     # существующую запись, если она уже есть. Запрос содержит параметризованные значения (?, ?, ?),

@@ -22,7 +22,6 @@ async def get_talk(message: Message, state: FSMContext):
     await message.reply("Привет, я бот-парсер!", reply_markup=menu_kb)
 
 
-
 # Роутер возвращения в основное меню..
 
 @router.callback_query(MyCallBack.filter(F.foo == 'return_to_main'))
@@ -61,12 +60,12 @@ async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack,
     result = cursor.fetchone()
 
     if result and result[0] == 1:
-        if random.randint(0, 1): 
-            await query.message.answer("Пока нет ничего нового, как только оно появится, мы тебе пришлем!")
+        if 1:  # Проверка состояния бота, которое указал пользователь 
             while True: 
-                asyncio.sleep(30)
-                if 1: # Проверка бд на наличие нового объявления  
-                    await query.message.answer("ИНФОРМАЦИЯ ПАРСА", reply_markup=return_to_main_kb)
+                asyncio.sleep(5)
+                if pars(): # Проверка бд на наличие нового объявления  
+                    text_parsed = pars()
+                    await query.message.answer(f"{text_parsed}", reply_markup=return_to_main_kb)
                 else:
                     pass
         else: 
