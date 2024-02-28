@@ -5,7 +5,6 @@ from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery
 from aiogram.fsm.context import FSMContext
 
 from src.config.cfg import bot
-from src.config.statesgroup import MainStateGroup, ParsingAvito
 from src.keyboards.inline import menu_kb, return_to_main_kb, payment_kb, how_many_day_sub, MyCallBack
 from src.parser.parser import pars
 
@@ -21,7 +20,7 @@ router = Router()
 @router.message(F.text == '/start')
 async def get_talk(message: Message, state: FSMContext):
     await message.reply("Привет, я бот-парсер!", reply_markup=menu_kb)
-    await state.set_state(MainStateGroup.main)
+
 
 
 # Роутер возвращения в основное меню..
@@ -62,7 +61,17 @@ async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack,
     result = cursor.fetchone()
 
     if result and result[0] == 1:
-        await query.message.edit_text('Пожалуйста скинь ссылку для парса', reply_markup=return_to_main_kb)
+        if random.randint(0, 1): 
+            await query.message.answer("Пока нет ничего нового, как только оно появится, мы тебе пришлем!")
+            while True: 
+                asyncio.sleep(30)
+                if 1: # Проверка бд на наличие нового объявления  
+                    await query.message.answer("ИНФОРМАЦИЯ ПАРСА", reply_markup=return_to_main_kb)
+                else:
+                    pass
+        else: 
+            await query.message.answer("Пока нет ничего нового, как только оно появится, мы тебе пришлем!")
+            await query.message.edit_text('Бот в состоянии поиска новых объявлений', reply_markup=return_to_main_kb)
     else:
         await query.message.edit_text("Извини, но на твоём балансе недостаточно средств для выполнения процедуры парса",
                                       reply_markup=payment_kb)
