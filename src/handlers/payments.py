@@ -49,7 +49,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
 
 @router.callback_query(MyCallBack.filter(F.foo == 'sub' and F.bar == 14))
 async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
-    await query.message.edit_text('Ты оплатил подписку!\n', reply_markup=return_to_main_kb)
+    await query.message.edit_text('Оплата подписки!\n', reply_markup=return_to_main_kb)
     await bot.send_invoice(
         chat_id=query.message.chat.id,
         title="Подписка",
