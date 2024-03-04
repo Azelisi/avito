@@ -6,15 +6,17 @@ from aiogram.fsm.context import FSMContext
 
 from src.config.cfg import bot
 from src.keyboards.inline import menu_kb, return_to_main_kb, payment_kb, how_many_day_sub, MyCallBack
-from src.parser.parser import pars
 from src.parser.database import get_all_ads
 
-
-
-import random
 import asyncio
 
+from src.rabbitmq.rabbitmq import RabbitMQSender
+
+rabbitmq_sender = RabbitMQSender()
+
 router = Router()
+
+
 # result_pars = pars()
 
 # Роутер основного меню..
@@ -55,8 +57,9 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
 # Роутер парсинга..
 # Проверка в базе на то что пользователь подписан (то есть, смотрим в базу данных user_id и sub_status и если sub_status равен 1 то всё заебисб)
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
-async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack):
+async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCallBack):
     user_id = query.from_user.id
+    print(f"Start parsing cycle for user {user_id}")
     conn_sub = sqlite3.connect('subscriptions.db')
     cursor = conn_sub.cursor()
 
@@ -64,25 +67,26 @@ async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack)
     result = cursor.fetchone()
 
     if result and result[0] == 1:
-
         new_ad_text = get_all_ads()
         old_ad_text = None
 
         while True:
             input_string = query.data
-            parts = input_string.split(":") 
+            parts = input_string.split(":")
             middle_word = parts[1]
             print(middle_word)
             if middle_word == 'return_to_main':
-                break  # Выходим из цикла при нажатии кнопки "Назад"
+                break
             else:
-                old_ad_text = new_ad_text 
-                await query.message.answer(f"{new_ad_text[0]}", reply_markup=return_to_main_kb)
+                old_ad_text = new_ad_text
+
+                # Отправляем сообщение в очередь RabbitMQ с ключом, равным идентификатору пользователя
+                print(f"Sending message to RabbitMQ for user {user_id}")
+                rabbitmq_sender.send_message(f'user_{user_id}', {'text': f'{new_ad_text[0]}'})
                 await asyncio.sleep(15)
     else:
         await query.message.edit_text("Извини, но на твоём балансе недостаточно средств для выполнения процедуры парса",
-                                      reply_markup=payment_kb)
-
+                                      reply_markup=how_many_day_sub)
 # @router.callback_query(SwitchStatesGroup.main)
 # async def callback_handler(query: types.CallbackQuery, state: FSMContext):
 #     await state.set_state(ParsingAvito.main)
