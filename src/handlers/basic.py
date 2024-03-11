@@ -5,10 +5,10 @@ from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery
 from aiogram.fsm.context import FSMContext
 
 from src.config.cfg import bot
-from src.keyboards.inline import menu_kb, return_to_main_kb, payment_kb, how_many_day_sub, MyCallBack
+from src.keyboards.inline import menu_kb, return_to_main_kb, payment_kb, how_many_day_sub_banks, how_many_day_sub_crypt, MyCallBack, type_of_payment
 from src.parser.parser import pars
 from src.parser.database import get_all_ads
-
+from src.handlers.cryptomus import create_invoice, get_invoice
 
 
 import random
@@ -30,7 +30,7 @@ async def get_talk(message: Message, state: FSMContext):
 async def get_to_main(query: CallbackQuery, callback_data: MyCallBack):
     await query.answer("Основное меню")
     await query.message.edit_text("Пожалуйста, выбери, что ты хочешь сделать", reply_markup=menu_kb)
-    print(f'{query.data} and {type(query.data)}')
+    print(f'{query.data} and {type(query.data)}!!!')
 
 
 # Роутер информации для пользователя..
@@ -48,9 +48,27 @@ async def callback_info(query: CallbackQuery, callback_data: MyCallBack):
 @router.callback_query(MyCallBack.filter(F.foo == 'pay'))
 async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
     await query.message.edit_text(
-        "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
-        parse_mode='HTML', reply_markup=how_many_day_sub)
+        "Выбери способ оплаты", reply_markup=type_of_payment)
 
+# Для банков
+@router.callback_query(MyCallBack.filter(F.foo == 'pay_bank'))
+async def top_up_user_bank(query: CallbackQuery, callback_data: MyCallBack):
+    await query.message.edit_text(
+        "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
+        parse_mode='HTML', reply_markup=how_many_day_sub_banks)
+
+# Для крипты 
+@router.callback_query(MyCallBack.filter(F.foo == 'pay_crypt'))
+async def top_up_user_crypt(query: CallbackQuery, callback_data: MyCallBack):
+    await query.message.edit_text(
+        "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
+        parse_mode='HTML', reply_markup=how_many_day_sub_crypt)
+
+@router.callback_query(MyCallBack.filter(F.foo == 'pay_crypt'))
+async def top_up_user_crypt(query: CallbackQuery, callback_data: MyCallBack):
+    await query.message.edit_text(
+        "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
+        parse_mode='HTML', reply_markup=how_many_day_sub_crypt)
 
 # Роутер парсинга..
 # Проверка в базе на то что пользователь подписан (то есть, смотрим в базу данных user_id и sub_status и если sub_status равен 1 то всё заебисб)
@@ -73,8 +91,9 @@ async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack)
             parts = input_string.split(":") 
             middle_word = parts[1]
             print(middle_word)
-            if middle_word == 'return_to_main':
-                break  # Выходим из цикла при нажатии кнопки "Назад"
+            print(f'While TRUE CALLBACK_DATA - {callback_data} and {query.data}')
+            if query.message.text.lower() == 'стоп':
+                break 
             else:
                 old_ad_text = new_ad_text 
                 await query.message.answer(f"{new_ad_text[0]}", reply_markup=return_to_main_kb)
@@ -83,6 +102,3 @@ async def start_process_of_pars(query: CallbackQuery, callback_data: MyCallBack)
         await query.message.edit_text("Извини, но на твоём балансе недостаточно средств для выполнения процедуры парса",
                                       reply_markup=payment_kb)
 
-# @router.callback_query(SwitchStatesGroup.main)
-# async def callback_handler(query: types.CallbackQuery, state: FSMContext):
-#     await state.set_state(ParsingAvito.main)
