@@ -55,7 +55,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
         title="Подписка",
         description="Подписка на 14 дней",
         payload=f'test-invoice-payload',
-        provider_token='381764678:TEST:68132',
+        provider_token='381764678:TEST:80095',
         currency='RUB',
         prices=[
             LabeledPrice(
@@ -91,7 +91,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
         title="Подписка",
         description="Подписка на 30 дней",
         payload=f'test-invoice-payload',
-        provider_token='381764678:TEST:68132',
+        provider_token='381764678:TEST:80095',
         currency='RUB',
         prices=[
             LabeledPrice(
