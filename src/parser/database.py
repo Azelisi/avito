@@ -15,6 +15,17 @@ def create_table_ads():
     conn.commit()
 
 
+def create_table_subscriptions():
+    cursor.execute('''
+          CREATE TABLE IF NOT EXISTS subscriptions (
+               user_id INTEGER PRIMARY KEY,
+               user_subtime INTEGER,
+               user_substatus BOOLEAN
+           )
+      ''')
+    conn.commit()
+
+
 # is_ad_in_database: Проверяет, существует ли объявление (ad_text) в таблице ads.
 def is_ad_in_database(ad_text):
     cursor.execute('SELECT * FROM ads WHERE text=?', (ad_text,))
