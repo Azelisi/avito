@@ -1,7 +1,6 @@
 from src.config.cfg import bot, dp
 from src.handlers import basic, payments
 from src.config.timer import timer_db
-from src.parser.parser import pars
 
 import logging
 import asyncio
