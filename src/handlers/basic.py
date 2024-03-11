@@ -3,6 +3,7 @@ import sqlite3
 from aiogram import F, types, Router
 from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery, ContentType
 from aiogram.fsm.context import FSMContext
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.config.cfg import bot
 from src.parser.parser import pars
@@ -31,14 +32,16 @@ async def get_talk(message: Message, state: FSMContext):
     await message.reply("Привет, я бот-парсер!", reply_markup=menu_kb)
 
 
-# Роутер возвращения в основное меню..
+# Роутер возвращения...
 
 @router.callback_query(MyCallBack.filter(F.foo == 'return_to_main'))
 async def get_to_main(query: CallbackQuery, callback_data: MyCallBack):
     await query.answer("Основное меню")
     await query.message.edit_text("Пожалуйста, выбери, что ты хочешь сделать", reply_markup=menu_kb)
-    print(f'{query.data} and {type(query.data)}!!!')
 
+@router.callback_query(MyCallBack.filter(F.foo == 'return_typeOfPay'))
+async def get_to_main(query: CallbackQuery, callback_data: MyCallBack):
+    await query.message.edit_text("Выбери способ оплаты", reply_markup=type_of_payment)
 
 # Роутер информации для пользователя..
 
@@ -64,19 +67,33 @@ async def top_up_user_bank(query: CallbackQuery, callback_data: MyCallBack):
         "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
         parse_mode='HTML', reply_markup=how_many_day_sub_banks)
 
-# # Для крипты 
-# @router.callback_query(MyCallBack.filter(F.foo == 'pay_crypt'))
-# async def top_up_user_crypt(query: CallbackQuery, callback_data: MyCallBack):
-#     await query.message.edit_text(
-#         "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
-#         parse_mode='HTML', reply_markup=how_many_day_sub_crypt)
+# Для крипты 
+@router.callback_query(MyCallBack.filter(F.foo == 'pay_crypt'))
+async def top_up_user_crypt(query: CallbackQuery, callback_data: MyCallBack):
+    await query.message.edit_text(
+        "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
+        parse_mode='HTML', reply_markup=how_many_day_sub_crypt)
 
-# @router.callback_query(MyCallBack.filter(F.foo == 'pay_crypt'))
-# async def top_up_user_crypt(query: CallbackQuery, callback_data: MyCallBack):
-#     await query.message.edit_text(
-#         "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
-#         parse_mode='HTML', reply_markup=how_many_day_sub_crypt)
+@router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_7'))
+async def top_up_user_crypt_7(query: CallbackQuery, callback_data: MyCallBack):
+    invoice = await create_invoice(query.message.from_user.id, 599)
+    markup = InlineKeyboardBuilder().button(text="✅ Я оплатил", callback_data=f'o_{invoice["result"]["uuid"]}')
+    await query.message.edit_text(f"Ваш чек: {invoice['result']['url']} ", reply_markup=markup)
 
+@router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_14'))
+async def top_up_user_crypt_14(query: CallbackQuery, callback_data: MyCallBack):
+    invoice = await create_invoice(query.message.from_user.id, 999)
+    markup = InlineKeyboardBuilder().button(text="✅ Я оплатил", callback_data=f'o_{invoice["result"]["uuid"]}')
+    await query.message.edit_text(f"Ваш чек: {invoice['result']['url']} ", reply_markup=markup)
+
+
+@router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_30'))
+async def top_up_user_crypt_30(query: CallbackQuery, callback_data: MyCallBack):
+    invoice = await create_invoice(query.message.from_user.id, 1799)
+    markup = InlineKeyboardBuilder().button(text="✅ Я оплатил", callback_data=f'o_{invoice["result"]["uuid"]}')
+    await query.message.edit_text(f"Ваш чек: {invoice['result']['url']} ", reply_markup=markup)
+
+    
 # Роутер парсинга..
 # Проверка в базе на то что пользователь подписан (то есть, смотрим в базу данных user_id и sub_status и если sub_status равен 1 то всё заебисб)
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))

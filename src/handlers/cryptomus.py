@@ -15,7 +15,7 @@ async def create_invoice(user_id: int, amount) -> Any:
         json_dumps = json.dumps({
             "amount": str(amount),
             "order_id": f"MY-TEST-ORDER-{user_id}-000",
-            "currency": "USDT",
+            "currency": "RUB",
             "network" : "tron",
             "Lifetime": 300
         })

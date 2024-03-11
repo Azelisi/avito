@@ -1,5 +1,3 @@
-import sqlite3
-
 from aiogram import F
 from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery
 from src.config.cfg import bot
@@ -7,12 +5,13 @@ from src.keyboards.inline import return_to_main_kb, menu_kb, MyCallBack
 from src.handlers.basic import router
 
 import asyncio
+import sqlite3
 
 from src.parser.database import create_table_subscriptions
 
 
 # Обработчик токенов..
-@router.callback_query(MyCallBack.filter(F.foo == 'sub' and F.bar == 7))
+@router.callback_query(MyCallBack.filter(F.foo == 'sub_bank' and F.bar == 7))
 async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
     await query.message.edit_text('Ждем твоей оплаты😉\n', reply_markup=return_to_main_kb)
     await bot.send_invoice(
@@ -20,7 +19,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
         title="Подписка",
         description="Подписка на 7 дней",
         payload=f'test-invoice-payload',
-        provider_token='381764678:TEST:80095',
+        provider_token='381764678:TEST:80119',
         currency='RUB',
         prices=[
             LabeledPrice(
@@ -56,7 +55,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
         title="Подписка",
         description="Подписка на 14 дней",
         payload=f'test-invoice-payload',
-        provider_token='381764678:TEST:80095',
+        provider_token='381764678:TEST:80119',
         currency='RUB',
         prices=[
             LabeledPrice(
@@ -92,7 +91,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
         title="Подписка",
         description="Подписка на 30 дней",
         payload=f'test-invoice-payload',
-        provider_token='381764678:TEST:80095',
+        provider_token='381764678:TEST:80119',
         currency='RUB',
         prices=[
             LabeledPrice(
@@ -118,8 +117,6 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
         reply_markup=None,
         request_timeout=30
     )
-
-
 @router.pre_checkout_query()
 async def process_pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
     await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
