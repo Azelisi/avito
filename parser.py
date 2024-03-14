@@ -39,7 +39,7 @@ def pars():
         title = bs.find("h3", class_="styles-module-size_l_compensated-OK6a6")
         price = bs.find("div", class_="iva-item-priceStep-uq2CQ")
         description = bs.find("div", class_="iva-item-descriptionStep-C0ty1")
-        street = bs.find("div", class_="geo-root-zPwRk")
+        # street = bs.find("div", class_="geo-root-zPwRk")
         link_product_source = bs.find("div", class_="iva-item-title-py3i_")
         link_product = link_product_source.find("a", class_="styles-module-root-QmppR")
         print("Парсер работет")
@@ -56,7 +56,7 @@ def pars():
                 f"Название: {title.text}\n"
                 f"Цена: {price.text}\n"
                 f"Описание: {description.text}\n"
-                f"Район: {street.text}\n"
+                # f"Район: {street.text}\n"
                 f"Ссылка: "
                 f"https://www.avito.ru{link_product['href']}"
             )
@@ -82,4 +82,7 @@ def pars():
 
 
 conn.close()
-pars()
+
+while True:
+    pars()
+    time.sleep(10)
