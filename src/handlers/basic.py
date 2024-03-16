@@ -106,8 +106,16 @@ async def parse_and_send_notifications(user_id):
 
         # Проверяем, было ли уже отправлено такое уведомление
         if new_ad_text[0] not in sent_notifications:
+            # Получаем текст объявления из кортежа
+            ad_text = new_ad_text[0][1]  # Предполагаем, что текст объявления находится во втором элементе кортежа
+
+            # Форматируем текст объявления с использованием HTML-тега <b>
+            format_text = ad_text.split('\n')
+            formatted_message = "<b>" + "</b>\n<b>".join(format_text) + "</b>"
+
             # Отправляем уведомление
-            await bot.send_message(user_id, f"{new_ad_text[0]}", reply_markup=return_to_main_kb)
+            await bot.send_message(user_id, formatted_message, parse_mode="HTML", reply_markup=return_to_main_kb)
+
             # Добавляем отправленное уведомление в список уже отправленных
             sent_notifications.add(new_ad_text[0])
 
