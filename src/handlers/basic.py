@@ -96,7 +96,7 @@ async def top_up_user_crypt_30(query: CallbackQuery, callback_data: MyCallBack):
 
 
 # В глобальной области видимости определите структуру данных для хранения уже отправленных уведомлений
-sent_notifications = set()
+sent_notifications = {}
 
 
 async def parse_and_send_notifications(user_id):
@@ -104,16 +104,19 @@ async def parse_and_send_notifications(user_id):
         # Выполняем парсинг
         new_ad_text = get_all_ads()
 
-        # Проверяем, было ли уже отправлено такое уведомление
+        # Проверяем, было ли уже отправлено такое уведомление для данного пользователя
         ad_text = new_ad_text[0][1]  # Предполагаем, что текст объявления находится во втором элементе кортежа
         formatted_message = format_message(ad_text)  # Форматируем текст объявления
 
-        if formatted_message not in sent_notifications:
+        if user_id not in sent_notifications:
+            sent_notifications[user_id] = set()
+
+        if formatted_message not in sent_notifications[user_id]:
             # Отправляем уведомление
             await bot.send_message(user_id, formatted_message, parse_mode="HTML", reply_markup=return_to_main_kb)
 
-            # Добавляем отправленное уведомление в список уже отправленных
-            sent_notifications.add(formatted_message)
+            # Добавляем отправленное уведомление в список уже отправленных для данного пользователя
+            sent_notifications[user_id].add(formatted_message)
 
         # Ждем некоторое время перед следующим парсингом
         await asyncio.sleep(5)  # 3600 секунд = 1 час
