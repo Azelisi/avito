@@ -3,7 +3,7 @@ import time
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
-
+import pyshorteners
 from src.config.cfg import url_Avito
 from src.parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
 
@@ -19,6 +19,11 @@ create_table_ads()
 url = url_Avito
 options = webdriver.ChromeOptions()
 options.add_argument("--headless")
+
+
+def shorten_url(long_url):
+    short_link = pyshorteners.Shortener()
+    return short_link.tinyurl.short(long_url)
 
 
 def pars():
@@ -49,16 +54,16 @@ def pars():
 
         # Проход по каждому блоку с информацией о заявке
         for ad_block in ad_blocks:
-
+            shortened_img_url = shorten_url(img['src'])
             # Формируем текст объявления
             ad_text = (
-                f"\n{img['src']}\n"
+                f"Ссылка:\n"
+                f"https://www.avito.ru{link_product['href']}\n"
                 f"Название: {title.text}\n"
                 f"Цена: {price.text}\n"
-                f"Описание: {description.text}\n"
+                f"Описание: {description.text}\n\n"
                 # f"Район: {street.text}\n"
-                f"Ссылка: "
-                f"https://www.avito.ru{link_product['href']}"
+                f"Картинка: {shortened_img_url}"
             )
 
             # Проверяем, есть ли объявление уже в базе данных
@@ -77,8 +82,8 @@ def pars():
 
     except Exception as errorException:
         print(f"Произошла ошибка: {errorException}")
-        print("Перезапуск программы через 30 секунд...")
-        time.sleep(30)  # Подождем перед следующей попыткой
+        print("Перезапуск программы через 5 секунд...")
+        time.sleep(5)  # Подождем перед следующей попыткой
 
 
 conn.close()

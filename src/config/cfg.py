@@ -8,4 +8,4 @@ dp = Dispatcher()
 API_CRYPT = ''
 MERCHANT_UID = ''
 
-url_Avito = 'https://www.avito.ru/chelyabinsk/telefony?q=айфон&s=104' #Url на Авито
+url_Avito = 'https://www.avito.ru/chelyabinsk/telefony?f=ASgBAgICAUT2vA2U0jQ&q=айфон&s=104' #Url на Авито

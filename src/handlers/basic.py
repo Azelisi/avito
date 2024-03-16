@@ -115,8 +115,8 @@ async def parse_and_send_notifications(user_id):
             # Добавляем отправленное уведомление в список уже отправленных
             sent_notifications.add(formatted_message)
 
-        # Ждем некоторое время перед следующим парсингом (например, 1 час)
-        # await asyncio.sleep(5)  # 3600 секунд = 1 час
+        # Ждем некоторое время перед следующим парсингом
+        await asyncio.sleep(5)  # 3600 секунд = 1 час
 
 
 def format_message(ad_text):
