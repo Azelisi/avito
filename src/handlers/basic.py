@@ -105,22 +105,24 @@ async def parse_and_send_notifications(user_id):
         new_ad_text = get_all_ads()
 
         # Проверяем, было ли уже отправлено такое уведомление
-        if new_ad_text[0] not in sent_notifications:
-            # Получаем текст объявления из кортежа
-            ad_text = new_ad_text[0][1]  # Предполагаем, что текст объявления находится во втором элементе кортежа
+        ad_text = new_ad_text[0][1]  # Предполагаем, что текст объявления находится во втором элементе кортежа
+        formatted_message = format_message(ad_text)  # Форматируем текст объявления
 
-            # Форматируем текст объявления с использованием HTML-тега <b>
-            format_text = ad_text.split('\n')
-            formatted_message = "<b>" + "</b>\n<b>".join(format_text) + "</b>"
-
+        if formatted_message not in sent_notifications:
             # Отправляем уведомление
             await bot.send_message(user_id, formatted_message, parse_mode="HTML", reply_markup=return_to_main_kb)
 
             # Добавляем отправленное уведомление в список уже отправленных
-            sent_notifications.add(new_ad_text[0])
+            sent_notifications.add(formatted_message)
 
         # Ждем некоторое время перед следующим парсингом (например, 1 час)
         # await asyncio.sleep(5)  # 3600 секунд = 1 час
+
+
+def format_message(ad_text):
+    # Функция для форматирования текста объявления с использованием HTML-тега <b>
+    format_text = ad_text.split('\n')
+    return "<b>" + "</b>\n<b>".join(format_text) + "</b>"
 
 
 # Роутер парсинга..
