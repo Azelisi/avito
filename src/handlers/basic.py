@@ -98,13 +98,13 @@ async def top_up_user_crypt_30(query: CallbackQuery, callback_data: MyCallBack):
 
 # В глобальной области видимости определите структуру данных для хранения уже отправленных уведомлений
 sent_notifications = {}
-is_running = False
+parser_states = {}
 
 
 async def parse_and_send_notifications(user_id):
-    global is_running
-    is_running = True
-    while is_running:
+    global parser_states
+    while parser_states.get(user_id, False):
+
         await asyncio.sleep(2)  # 3600 секунд = 1 час
         # Выполняем парсинг
         new_ad_text = get_all_ads()
@@ -121,9 +121,10 @@ async def parse_and_send_notifications(user_id):
             await bot.send_message(user_id, formatted_message, parse_mode="HTML")
             # Добавляем отправленное уведомление в список уже отправленных для данного пользователя
             sent_notifications[user_id].add(formatted_message)
+            print(sent_notifications)
 
         # Ждем некоторое время перед следующим парсингом
-        print(is_running)
+        print(parser_states)
         await asyncio.sleep(3)
 
 
@@ -135,27 +136,29 @@ def format_message(ad_text):
 
 @router.message(F.text.lower().strip() == 'стоп')
 async def stop_pars(message: Message):
-    global is_running
+    global parser_states
     user_id = message.from_user.id
-    if user_id in sent_notifications:
-        del sent_notifications[user_id]  # Удаляем все отправленные уведомления для пользователя
-        is_running = False  # Это необходимо, чтобы парсер перестал запускаться для всех пользователей
-    await message.reply("Парсер остановлен 😴")
+    parser_states[user_id] = False
+    await message.answer("Парсер остановлен 😴", reply_markup=menu_kb)
+    del sent_notifications[user_id]  # Удаляем все отправленные уведомления для пользователя
 
 
 # Роутер парсинга..
 # Проверка в базе на то что пользователь подписан (то есть, смотрим в базу данных user_id и sub_status и если sub_status равен 1 то всё заебисб)
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
 async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCallBack):
-    global is_running
+    global parser_states
     user_id = query.from_user.id
+
     print(f"Start parsing cycle for user {user_id}, {query.data}")
 
-    # Отправляем уведомление о начале парсинга
-    await query.message.answer(
-        "Парсинг запущен 🚀\nТы будешь получать уведомления о новых объявлениях\n\nДля остановки напиши - <b>Стоп</b>",
-        parse_mode="HTML")
-    # Запускаем асинхронную функцию, которая будет выполнять парсинг и отправлять уведомления
-    await asyncio.create_task(parse_and_send_notifications(user_id))
-    if not is_running:
-        await query.message.answer("Парсер остановлен 😴", reply_markup=menu_kb)
+    if not parser_states.get(user_id, False):
+        # Пользователь еще не запустил парсер, поэтому запускаем его
+        parser_states[user_id] = True
+        await query.message.answer(
+            "Парсинг запущен 🚀\nТы будешь получать уведомления о новых объявлениях\n\nДля остановки напиши - <b>Стоп</b>",
+            parse_mode="HTML")
+        await asyncio.create_task(parse_and_send_notifications(user_id))
+    else:
+        # Пользователь уже запустил парсер
+        await query.message.answer("Парсер уже запущен 😊")
