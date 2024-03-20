@@ -53,9 +53,9 @@ how_many_day_sub_crypt = InlineKeyboardMarkup(inline_keyboard=[
 
 
 menu_kb = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text= "Начать парс", callback_data=MyCallBack(foo='parsing', bar=1).pack())],
-    [InlineKeyboardButton(text= "Пополнить баланс", callback_data=MyCallBack(foo='pay', bar=1).pack())], 
-    [InlineKeyboardButton(text= "Инфо", callback_data=MyCallBack(foo='info', bar=1).pack())]
+    [InlineKeyboardButton(text= "💻 Начать парс", callback_data=MyCallBack(foo='parsing', bar=1).pack())],
+    [InlineKeyboardButton(text= "🤑 Пополнить баланс", callback_data=MyCallBack(foo='pay', bar=1).pack())], 
+    [InlineKeyboardButton(text= "❓ Информация", callback_data=MyCallBack(foo='info', bar=1).pack())]
 ])
 
 return_to_main_kb = InlineKeyboardMarkup(inline_keyboard=[
