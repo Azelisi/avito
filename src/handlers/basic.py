@@ -136,8 +136,9 @@ async def top_up_user_crypt_30(query: CallbackQuery, callback_data: MyCallBack):
     
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
 async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCallBack):
-    global is_running
+    global parser_states
     user_id = query.from_user.id
+
     print(f"Start parsing cycle for user {user_id}, {query.data}")
 
     # Отправляем уведомление о начале парсинга
