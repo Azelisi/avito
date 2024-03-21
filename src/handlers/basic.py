@@ -1,4 +1,5 @@
 import asyncio
+import sqlite3
 
 from aiogram import F, types, Router
 from aiogram.types import Message, CallbackQuery
@@ -7,17 +8,18 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram import flags
 
 from src.config.cfg import bot
-from src.keyboards.inline import menu_kb, return_to_main_kb, how_many_day_sub_banks, how_many_day_sub_crypt, MyCallBack, type_of_payment
+from src.keyboards.inline import menu_kb, return_to_main_kb, how_many_day_sub_banks, how_many_day_sub_crypt, MyCallBack, \
+    type_of_payment
 from src.handlers.cryptomus import create_invoice
 from src.parser.database import get_all_ads
 from src.config.check_dub import add_json, read_json, clear_json
-
 
 router = Router()
 
 # В глобальной области видимости определите структуру данных для хранения уже отправленных уведомлений
 sent_notifications = {}
 is_running = False
+
 
 async def parse_and_send_notifications(user_id):
     global is_running
@@ -33,16 +35,14 @@ async def parse_and_send_notifications(user_id):
         if user_id not in sent_notifications:
             sent_notifications[user_id] = set()
 
-        if ((formatted_message not in sent_notifications[user_id]) 
-            and not(any(entry.get('content') == formatted_message for entry in read_json(user_id)))):
-            
+        if ((formatted_message not in sent_notifications[user_id])
+                and not (any(entry.get('content') == formatted_message for entry in read_json(user_id)))):
             # Отправляем уведомление
             await bot.send_message(user_id, formatted_message, parse_mode="HTML")
             add_json(user_id, formatted_message)
             # Добавляем отправленное уведомление в список уже отправленных для данного пользователя
             sent_notifications[user_id].add(formatted_message)
-        
-        
+
         # Ждем некоторое время перед следующим парсингом
         print(is_running)
         await asyncio.sleep(3)
@@ -93,7 +93,7 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
 
 
 # Для банков
-    
+
 @router.callback_query(MyCallBack.filter(F.foo == 'pay_bank'))
 async def top_up_user_bank(query: CallbackQuery, callback_data: MyCallBack):
     await query.message.edit_text(
@@ -102,7 +102,7 @@ async def top_up_user_bank(query: CallbackQuery, callback_data: MyCallBack):
 
 
 # Для крипты
-    
+
 @router.callback_query(MyCallBack.filter(F.foo == 'pay_crypt'))
 async def top_up_user_crypt(query: CallbackQuery, callback_data: MyCallBack):
     await query.message.edit_text(
@@ -133,7 +133,6 @@ async def top_up_user_crypt_30(query: CallbackQuery, callback_data: MyCallBack):
 
 # Роутер парсинга..
 # Проверка в базе на то что пользователь подписан (то есть, смотрим в базу данных user_id и sub_status и если sub_status равен 1 то всё заебисб)
-    
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
 async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCallBack):
     global parser_states
@@ -141,19 +140,30 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
 
     print(f"Start parsing cycle for user {user_id}, {query.data}")
 
-    # Отправляем уведомление о начале парсинга
-    await query.message.answer(
-        "Парсинг запущен 🚀\nТы будешь получать уведомления о новых объявлениях\n\nДля остановки напиши - <b>Стоп</b>",
-        parse_mode="HTML")
-    # Запускаем асинхронную функцию, которая будет выполнять парсинг и отправлять уведомления
-    await asyncio.create_task(parse_and_send_notifications(user_id))
-    if not is_running:
-        await query.message.answer("Парсер остановлен 😴", reply_markup=menu_kb)
+    # Проверяем подписку пользователя
+    conn_sub = sqlite3.connect('subscriptions.db')
+    cursor = conn_sub.cursor()
+
+    cursor.execute('SELECT user_substatus FROM subscriptions WHERE user_id=?', (user_id,))
+    result = cursor.fetchone()
+
+    if result and result[0] == 1:
+        # Отправляем уведомление о начале парсинга
+        await query.message.answer(
+            "Парсинг запущен 🚀\nТы будешь получать уведомления о новых объявлениях\n\nДля остановки напиши - <b>Стоп</b>",
+            parse_mode="HTML")
+        # Запускаем асинхронную функцию, которая будет выполнять парсинг и отправлять уведомления
+        await asyncio.create_task(parse_and_send_notifications(user_id))
+        if not is_running:
+            await query.message.answer("Парсер остановлен 😴", reply_markup=menu_kb)
+    else:
+        # Если пользователь не подписан, отправляем ему сообщение о необходимости подписки
+        await query.message.answer("Для использования парсера необходимо подписаться!")
 
 
 # Роутер остановки парсера 
 ## Да, по-другому не смог, потому в рот ебал это while TRUE
-        
+
 @router.message(F.text.lower().in_(['/stop', 'стоп', 'stop', 'cnjg']))
 async def stop_pars(message: Message):
     global is_running
@@ -162,4 +172,3 @@ async def stop_pars(message: Message):
         del sent_notifications[user_id]  # Удаляем все отправленные уведомления для пользователя
         clear_json(user_id)
         is_running = False  # Это необходимо, чтобы парсер перестал запускаться для всех пользователей
-
