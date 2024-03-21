@@ -5,7 +5,6 @@ from src.handlers.basic import parse_and_send_notifications
 
 
 async def timer_db():
-    print("Фу")
     while True:
         # Подключение к базе данных
         conn_sub = sqlite3.connect('subscriptions.db')
@@ -32,15 +31,15 @@ async def timer_db():
             ''', (expiration_time, is_subscribed, user_id))
 
             # Проверяем подписку пользователя каждые 12 часов
-            cursor.execute('SELECT user_id FROM subscriptions WHERE user_substatus = 1 AND user_subtime <= 0')
-            active_users = cursor.fetchall()
-            for user_id in active_users:
-                # Запускаем процесс парсинга для подписанных пользователей
-                await parse_and_send_notifications(user_id)
+          #  cursor.execute('SELECT user_id FROM subscriptions WHERE user_substatus = 1 AND user_subtime <= 0')
+          #  active_users = cursor.fetchall()
+           # for user_id in active_users:
+            #    # Запускаем процесс парсинга для подписанных пользователей
+           #     await parse_and_send_notifications(user_id)
 
         # Сохраняем изменения и закрываем подключение к базе данных
         conn_sub.commit()
         conn_sub.close()
 
         # await asyncio.sleep(60 * 60 * 12)  # Обновление каждые 12 часов
-        await asyncio.sleep(10)
+        await asyncio.sleep(60 * 60 * 12)
