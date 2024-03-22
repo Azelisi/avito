@@ -1,22 +1,19 @@
 import asyncio
 import sqlite3
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+from src.handlers.basic import parse_and_send_notifications
 
 
 async def timer_db():
-    print("Фу")
     while True:
-        # await asyncio.sleep(60 * 60 * 12)  # Обновление каждые 12 часов
-        await asyncio.sleep(10)
-        print("10 sec")
         # Подключение к базе данных
         conn_sub = sqlite3.connect('subscriptions.db')
         cursor = conn_sub.cursor()
-        # Получаем одну запись из таблицы subscriptions
+        # Получаем все записи из таблицы subscriptions
         cursor.execute('SELECT user_id, user_subtime, user_substatus FROM subscriptions')
-        subscription = cursor.fetchone()
+        subscriptions = cursor.fetchall()
 
-        while subscription:
+        for subscription in subscriptions:
             user_id, expiration_time, is_subscribed = subscription
             # Уменьшаем время подписки на 12 часов
             expiration_time -= 12
@@ -33,9 +30,16 @@ async def timer_db():
                 WHERE user_id=?
             ''', (expiration_time, is_subscribed, user_id))
 
-            # Получаем следующую запись
-            subscription = cursor.fetchone()
+            # Проверяем подписку пользователя каждые 12 часов
+          #  cursor.execute('SELECT user_id FROM subscriptions WHERE user_substatus = 1 AND user_subtime <= 0')
+          #  active_users = cursor.fetchall()
+           # for user_id in active_users:
+            #    # Запускаем процесс парсинга для подписанных пользователей
+           #     await parse_and_send_notifications(user_id)
 
         # Сохраняем изменения и закрываем подключение к базе данных
         conn_sub.commit()
         conn_sub.close()
+
+        # await asyncio.sleep(60 * 60 * 12)  # Обновление каждые 12 часов
+        await asyncio.sleep(60 * 60 * 12)

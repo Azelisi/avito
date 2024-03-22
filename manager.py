@@ -8,6 +8,9 @@ import asyncio
 
 async def on_startup(dispatcher):
     print("Бот запущен")
+    # Запуск асинхронной функции timer_db
+    asyncio.create_task(timer_db())
+
 
 async def main():
     logging.basicConfig(level=logging.INFO,
