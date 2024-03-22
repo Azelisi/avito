@@ -29,8 +29,8 @@ payment_kb = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 type_of_payment = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text= "Оплата через криптовалюту", callback_data=MyCallBack(foo='pay_crypt', bar=1).pack())],
-    [InlineKeyboardButton(text= "Оплата через банки", callback_data=MyCallBack(foo='pay_bank', bar=1).pack())],
+    [InlineKeyboardButton(text= "🪙 Оплата через криптовалюту", callback_data=MyCallBack(foo='pay_crypt', bar=1).pack())],
+    [InlineKeyboardButton(text= "🏦 Оплата через банки", callback_data=MyCallBack(foo='pay_bank', bar=1).pack())],
     [InlineKeyboardButton(text= "Назад", callback_data=MyCallBack(foo='return_to_main', bar=1).pack())] 
 ]) 
 
@@ -54,7 +54,7 @@ how_many_day_sub_crypt = InlineKeyboardMarkup(inline_keyboard=[
 
 menu_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text= "💻 Начать парс", callback_data=MyCallBack(foo='parsing', bar=1).pack())],
-    [InlineKeyboardButton(text= "🤑 Пополнить баланс", callback_data=MyCallBack(foo='pay', bar=1).pack())], 
+    [InlineKeyboardButton(text= "💰 Пополнить баланс", callback_data=MyCallBack(foo='pay', bar=1).pack())], 
     [InlineKeyboardButton(text= "❓ Информация", callback_data=MyCallBack(foo='info', bar=1).pack())]
 ])
 
