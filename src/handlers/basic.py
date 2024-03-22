@@ -134,33 +134,36 @@ async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
     conn = sqlite3.connect('subscriptions.db')
     cursor = conn.cursor()
 
-    # Получаем текущее время подписки пользователя
-    cursor.execute('SELECT user_subtime FROM subscriptions WHERE user_id = ?', (user_id,))
-    current_subtime = cursor.fetchone()
+    # Проверяем, использовал ли пользователь уже пробную подписку
+    cursor.execute('SELECT user_trial_status, user_subtime FROM subscriptions WHERE user_id = ?', (user_id,))
+    trial_status, expiration_time = cursor.fetchone()
 
-    if current_subtime is None:
-        # Если записи о пользователе нет, добавляем его и устанавливаем пробную подписку на 1 день
-        expiration_time = 24  # Пробная подписка на 1 день
+    if trial_status:
+        # Если пользователь уже использовал пробную подписку, отправляем сообщение об этом
+        await query.message.answer("Вы уже использовали пробную подписку.", reply_markup=menu_kb)
+    else:
+        # Если пользователь еще не использовал пробную подписку, добавляем или обновляем запись в базе данных
+        trial_duration = 24  # Продолжительность пробной подписки на 1 день
+        if expiration_time is not None:
+            # Если у пользователя уже есть срок истечения подписки, добавляем к нему продолжительность пробной подписки
+            expiration_time += trial_duration
+        else:
+            # Если у пользователя нет срока истечения подписки, устанавливаем продолжительность пробной подписки
+            expiration_time = trial_duration
+
         cursor.execute('''
             INSERT INTO subscriptions (user_id, user_subtime, user_substatus, user_trial_status)
             VALUES (?, ?, ?, ?)
-        ''', (user_id, expiration_time, True, True))
-    else:
-        # Если запись о пользователе уже существует, добавляем к текущему времени подписки пробную подписку на 1 день
-        expiration_time = 24  # Пробная подписка на 1 день
-        new_subtime = current_subtime[0] + expiration_time
-        cursor.execute('''
-            UPDATE subscriptions
-            SET user_subtime = ?, user_substatus = ?, user_trial_status = ?
-            WHERE user_id = ?
-        ''', (new_subtime, True, True, user_id))
+            ON CONFLICT(user_id) DO UPDATE SET user_subtime = ?, user_substatus = ?, user_trial_status = ?
+        ''', (user_id, expiration_time, True, True, expiration_time, True, True))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
 
-    await query.message.answer(
-        "Пробная подписка оформлена на 1 день",
-        parse_mode='HTML', reply_markup=menu_kb)
+        await query.message.answer(
+            "Пробная подписка оформлена на 1 день",
+            parse_mode='HTML', reply_markup=menu_kb)
+
 
 @router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_7'))
 async def top_up_user_crypt_7(query: CallbackQuery, callback_data: MyCallBack):
@@ -213,7 +216,7 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
         await query.message.answer("Для использования парсера необходимо подписаться!", reply_markup=menu_kb)
 
 
-# Роутер остановки парсера 
+# Роутер остановки парсера
 ## Да, по-другому не смог, потому в рот ебал это while TRUE
 
 @router.message(F.text.lower().in_(['/stop', 'стоп', 'stop', 'cnjg']))
