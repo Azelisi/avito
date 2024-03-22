@@ -20,7 +20,8 @@ def create_table_subscriptions():
           CREATE TABLE IF NOT EXISTS subscriptions (
                user_id INTEGER PRIMARY KEY,
                user_subtime INTEGER,
-               user_substatus BOOLEAN
+               user_substatus BOOLEAN,
+               user_trial_status BOOLEAN
            )
       ''')
     conn.commit()

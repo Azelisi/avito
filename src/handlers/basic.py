@@ -57,12 +57,12 @@ async def parse_and_send_notifications(user_id):
                 # Останавливаем парсинг
                 is_running = False
                 # Отправляем сообщение о завершении подписки
-                await bot.send_message(user_id, "Ваша подписка закончилась. Чтобы продолжить использование парсера, подпишитесь заново.")
+                await bot.send_message(user_id,
+                                       "Ваша подписка закончилась. Чтобы продолжить использование парсера, подпишитесь заново.")
 
         # Ждем некоторое время перед следующим парсингом
         print(is_running)
         await asyncio.sleep(3)
-
 
 
 def format_message(ad_text):
@@ -96,8 +96,9 @@ async def get_to_main(query: CallbackQuery, callback_data: MyCallBack):
 @router.callback_query(MyCallBack.filter(F.foo == 'info'))
 async def callback_info(query: CallbackQuery, callback_data: MyCallBack):
     await query.answer("Информация о парсинге")
-    await query.message.edit_text('Важно знать перед использованием!\nВот как выполняется парсинг',
-                                  reply_markup=return_to_main_kb)
+    await query.message.edit_text(
+        'Парсинг происходит по самым новым объявлениям по Айфонам в городе Челябинск\n\nЕсли есть вопросы или нужен парсер по другим городам и продуктам пишите @Azelisi и @holyd4mn',
+        reply_markup=return_to_main_kb)
     print(f'{query.data} and {type(query.data)}')
 
 
@@ -126,6 +127,40 @@ async def top_up_user_crypt(query: CallbackQuery, callback_data: MyCallBack):
         "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
         parse_mode='HTML', reply_markup=how_many_day_sub_crypt)
 
+
+@router.callback_query(MyCallBack.filter(F.foo == 'pay_trial'))
+async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
+    user_id = query.from_user.id
+    conn = sqlite3.connect('subscriptions.db')
+    cursor = conn.cursor()
+
+    # Получаем текущее время подписки пользователя
+    cursor.execute('SELECT user_subtime FROM subscriptions WHERE user_id = ?', (user_id,))
+    current_subtime = cursor.fetchone()
+
+    if current_subtime is None:
+        # Если записи о пользователе нет, добавляем его и устанавливаем пробную подписку на 1 день
+        expiration_time = 24  # Пробная подписка на 1 день
+        cursor.execute('''
+            INSERT INTO subscriptions (user_id, user_subtime, user_substatus, user_trial_status)
+            VALUES (?, ?, ?, ?)
+        ''', (user_id, expiration_time, True, True))
+    else:
+        # Если запись о пользователе уже существует, добавляем к текущему времени подписки пробную подписку на 1 день
+        expiration_time = 24  # Пробная подписка на 1 день
+        new_subtime = current_subtime[0] + expiration_time
+        cursor.execute('''
+            UPDATE subscriptions
+            SET user_subtime = ?, user_substatus = ?, user_trial_status = ?
+            WHERE user_id = ?
+        ''', (new_subtime, True, True, user_id))
+
+    conn.commit()
+    conn.close()
+
+    await query.message.answer(
+        "Пробная подписка оформлена на 1 день",
+        parse_mode='HTML', reply_markup=menu_kb)
 
 @router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_7'))
 async def top_up_user_crypt_7(query: CallbackQuery, callback_data: MyCallBack):
