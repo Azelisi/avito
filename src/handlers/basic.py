@@ -1,5 +1,6 @@
 import asyncio
 import sqlite3
+from datetime import datetime
 
 from aiogram import F, types, Router
 from aiogram.types import Message, CallbackQuery
@@ -43,9 +44,25 @@ async def parse_and_send_notifications(user_id):
             # Добавляем отправленное уведомление в список уже отправленных для данного пользователя
             sent_notifications[user_id].add(formatted_message)
 
+        # Проверяем подписку пользователя каждые 6 часов
+        if datetime.now().hour % 6 == 0:
+            conn_sub = sqlite3.connect('subscriptions.db')
+            cursor = conn_sub.cursor()
+            cursor.execute('SELECT user_substatus FROM subscriptions WHERE user_id=?', (user_id,))
+            result = cursor.fetchone()
+            conn_sub.close()
+            print('Проверка подписки')
+
+            if result and result[0] != 1:
+                # Останавливаем парсинг
+                is_running = False
+                # Отправляем сообщение о завершении подписки
+                await bot.send_message(user_id, "Ваша подписка закончилась. Чтобы продолжить использование парсера, подпишитесь заново.")
+
         # Ждем некоторое время перед следующим парсингом
         print(is_running)
         await asyncio.sleep(3)
+
 
 
 def format_message(ad_text):
@@ -158,7 +175,7 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
             await query.message.answer("Парсер остановлен 😴", reply_markup=menu_kb)
     else:
         # Если пользователь не подписан, отправляем ему сообщение о необходимости подписки
-        await query.message.answer("Для использования парсера необходимо подписаться!")
+        await query.message.answer("Для использования парсера необходимо подписаться!", reply_markup=menu_kb)
 
 
 # Роутер остановки парсера 
