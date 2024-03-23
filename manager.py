@@ -1,4 +1,3 @@
-
 from src.config.cfg import bot, dp
 from src.handlers import basic, payments
 from src.config.timer import timer_db
@@ -6,12 +5,14 @@ from src.config.timer import timer_db
 import logging
 import asyncio
 
+from src.handlers.basic import start_parsing_for_active_users
+
 
 async def on_startup(dispatcher):
     print("Бот запущен")
     # Запуск асинхронной функции timer_db
     asyncio.create_task(timer_db())
-
+    asyncio.create_task(start_parsing_for_active_users())
 async def main():
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s - [%(levelname)s] - %(name)s"
