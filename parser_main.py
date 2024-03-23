@@ -1,3 +1,4 @@
+import asyncio
 import sqlite3
 import time
 
@@ -83,11 +84,13 @@ def pars():
     except Exception as errorException:
         print(f"Произошла ошибка: {errorException}")
         print("Перезапуск программы через 5 секунд...")
-        time.sleep(5)  # Подождем перед следующей попыткой
+        asyncio.sleep(5)  # Подождем перед следующей попыткой
 
 
 conn.close()
 
-while True:
-    pars()
-    time.sleep(10)
+
+def run_parser():
+    while True:
+        pars()
+        time.sleep(10)
