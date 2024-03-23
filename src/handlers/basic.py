@@ -19,14 +19,14 @@ router = Router()
 
 # В глобальной области видимости определите структуру данных для хранения уже отправленных уведомлений
 sent_notifications = {}
-is_running = False
+is_running = {}
 
 
 async def parse_and_send_notifications(user_id):
     global is_running
-    is_running = True
-    while is_running:
-        await asyncio.sleep(2)  # 3600 секунд = 1 час
+    is_running[user_id] = True  # Устанавливаем состояние парсера для данного пользователя
+    while is_running.get(user_id, False):  # Проверяем состояние парсера для данного пользователя
+        await asyncio.sleep(5)  # 3600 секунд = 1 час
         # Выполняем парсинг
         new_ad_text = get_all_ads()
 
@@ -55,7 +55,7 @@ async def parse_and_send_notifications(user_id):
 
             if result and result[0] != 1:
                 # Останавливаем парсинг
-                is_running = False
+                is_running[user_id] = False
                 # Отправляем сообщение о завершении подписки
                 await bot.send_message(user_id,
                                        "Ваша подписка закончилась. Чтобы продолжить использование парсера, подпишитесь заново.")
@@ -178,6 +178,8 @@ async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
         await query.message.answer(
             "Пробная подписка оформлена на 1 день",
             parse_mode='HTML', reply_markup=menu_kb)
+
+
 @router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_7'))
 async def top_up_user_crypt_7(query: CallbackQuery, callback_data: MyCallBack):
     invoice = await create_invoice(query.message.from_user.id, 599)
@@ -222,8 +224,6 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
             parse_mode="HTML")
         # Запускаем асинхронную функцию, которая будет выполнять парсинг и отправлять уведомления
         await asyncio.create_task(parse_and_send_notifications(user_id))
-        if not is_running:
-            await query.message.answer("Парсер остановлен 😴", reply_markup=menu_kb)
     else:
         # Если пользователь не подписан, отправляем ему сообщение о необходимости подписки
         await query.message.answer("Для использования парсера необходимо подписаться!", reply_markup=menu_kb)
@@ -234,9 +234,11 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
 
 @router.message(F.text.lower().in_(['/stop', 'стоп', 'stop', 'cnjg']))
 async def stop_pars(message: Message):
-    global is_running
     user_id = message.from_user.id
-    if user_id in sent_notifications:
-        del sent_notifications[user_id]  # Удаляем все отправленные уведомления для пользователя
+    if user_id in is_running:
+        del is_running[user_id]  # Удаляем состояние парсера для данного пользователя
+        del sent_notifications[user_id]
         clear_json(user_id)
-        is_running = False  # Это необходимо, чтобы парсер перестал запускаться для всех пользователей
+        await bot.send_message(user_id, "Парсер остановлен 😴",
+                               reply_markup=menu_kb)  # Отправляем уведомление о том, что парсер остановлен
+
