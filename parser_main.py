@@ -94,3 +94,6 @@ def run_parser():
     while True:
         pars()
         time.sleep(10)
+
+
+run_parser()

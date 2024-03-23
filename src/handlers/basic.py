@@ -136,35 +136,48 @@ async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
 
     # Проверяем, использовал ли пользователь уже пробную подписку
     cursor.execute('SELECT user_trial_status, user_subtime FROM subscriptions WHERE user_id = ?', (user_id,))
-    trial_status, expiration_time = cursor.fetchone()
+    row = cursor.fetchone()
 
-    if trial_status:
-        # Если пользователь уже использовал пробную подписку, отправляем сообщение об этом
-        await query.message.answer("Вы уже использовали пробную подписку.", reply_markup=menu_kb)
-    else:
-        # Если пользователь еще не использовал пробную подписку, добавляем или обновляем запись в базе данных
-        trial_duration = 24  # Продолжительность пробной подписки на 1 день
-        if expiration_time is not None:
-            # Если у пользователя уже есть срок истечения подписки, добавляем к нему продолжительность пробной подписки
-            expiration_time += trial_duration
+    if row:
+        trial_status, expiration_time = row
+        if trial_status:
+            # Если пользователь уже использовал пробную подписку, отправляем сообщение об этом
+            await query.message.answer("Вы уже использовали пробную подписку.", reply_markup=menu_kb)
         else:
-            # Если у пользователя нет срока истечения подписки, устанавливаем продолжительность пробной подписки
-            expiration_time = trial_duration
+            # Если пользователь еще не использовал пробную подписку, добавляем или обновляем запись в базе данных
+            trial_duration = 24  # Продолжительность пробной подписки на 1 день
+            if expiration_time is not None:
+                # Если у пользователя уже есть срок истечения подписки, добавляем к нему продолжительность пробной подписки
+                expiration_time += trial_duration
+            else:
+                # Если у пользователя нет срока истечения подписки, устанавливаем продолжительность пробной подписки
+                expiration_time = trial_duration
 
+            cursor.execute('''
+                INSERT INTO subscriptions (user_id, user_subtime, user_substatus, user_trial_status)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user_id) DO UPDATE SET user_subtime = ?, user_substatus = ?, user_trial_status = ?
+            ''', (user_id, expiration_time, True, True, expiration_time, True, True))
+
+            conn.commit()
+            conn.close()
+
+            await query.message.answer(
+                "Пробная подписка оформлена на 1 день",
+                parse_mode='HTML', reply_markup=menu_kb)
+    else:
+        # Если запись о пользователе отсутствует, создаем новую запись с пробной подпиской
+        expiration_time = 24  # Продолжительность пробной подписки на 1 день
         cursor.execute('''
             INSERT INTO subscriptions (user_id, user_subtime, user_substatus, user_trial_status)
             VALUES (?, ?, ?, ?)
-            ON CONFLICT(user_id) DO UPDATE SET user_subtime = ?, user_substatus = ?, user_trial_status = ?
-        ''', (user_id, expiration_time, True, True, expiration_time, True, True))
-
+        ''', (user_id, expiration_time, True, True))
         conn.commit()
         conn.close()
 
         await query.message.answer(
             "Пробная подписка оформлена на 1 день",
             parse_mode='HTML', reply_markup=menu_kb)
-
-
 @router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_7'))
 async def top_up_user_crypt_7(query: CallbackQuery, callback_data: MyCallBack):
     invoice = await create_invoice(query.message.from_user.id, 599)
