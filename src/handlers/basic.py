@@ -167,7 +167,7 @@ async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
             await query.message.answer("Вы уже использовали пробную подписку.", reply_markup=menu_kb)
         else:
             # Если пользователь еще не использовал пробную подписку, добавляем или обновляем запись в базе данных
-            trial_duration = 24  # Продолжительность пробной подписки на 1 день
+            trial_duration = 168  # Продолжительность пробной подписки на 1 день
             if expiration_time is not None:
                 # Если у пользователя уже есть срок истечения подписки, добавляем к нему продолжительность пробной подписки
                 expiration_time += trial_duration
@@ -185,11 +185,11 @@ async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
             conn.close()
 
             await query.message.answer(
-                "Пробная подписка оформлена на 1 день",
+                "Пробная подписка оформлена на неделю",
                 parse_mode='HTML', reply_markup=menu_kb)
     else:
         # Если запись о пользователе отсутствует, создаем новую запись с пробной подпиской
-        expiration_time = 24  # Продолжительность пробной подписки на 1 день
+        expiration_time = 168  # Продолжительность пробной подписки на неделю
         cursor.execute('''
             INSERT INTO subscriptions (user_id, user_subtime, user_substatus, user_trial_status)
             VALUES (?, ?, ?, ?)
@@ -198,7 +198,7 @@ async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
         conn.close()
 
         await query.message.answer(
-            "Пробная подписка оформлена на 1 день",
+            "Пробная подписка оформлена на неделю",
             parse_mode='HTML', reply_markup=menu_kb)
 
 
