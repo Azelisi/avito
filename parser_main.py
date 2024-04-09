@@ -27,7 +27,7 @@ def shorten_url(long_url):
     return short_link.tinyurl.short(long_url)
 
 
-def pars():
+async def pars():
     try:
         driver = webdriver.Chrome(options=options)
         driver.get(url)
@@ -80,20 +80,17 @@ def pars():
             else:
                 print("Вернулся 0")
                 return 0
-
     except Exception as errorException:
         print(f"Произошла ошибка: {errorException}")
         print("Перезапуск программы через 5 секунд...")
-        asyncio.sleep(5)  # Подождем перед следующей попыткой
+        await asyncio.sleep(5)  # Подождем перед следующей попыткой
 
 
 conn.close()
 
 
-def run_parser():
+async def run_parser():
     while True:
-        pars()
-        time.sleep(10)
+        await pars()
+        await asyncio.sleep(10)  # Используем asyncio.sleep вместо time.sleep
 
-
-run_parser()
