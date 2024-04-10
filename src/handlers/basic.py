@@ -6,7 +6,6 @@ from aiogram import F, types, Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram import flags
 
 from src.config.cfg import bot
 from src.keyboards.inline import menu_kb, return_to_main_kb, how_many_day_sub_banks, how_many_day_sub_crypt, MyCallBack, \
@@ -19,14 +18,37 @@ router = Router()
 
 # В глобальной области видимости определите структуру данных для хранения уже отправленных уведомлений
 sent_notifications = {}
-is_running = False
+is_running = {}
+
+
+def format_message(ad_text):
+    # Функция для форматирования текста объявления с использованием HTML-тега <b>
+    format_text = ad_text.split('\n')
+    return "<b>" + "</b>\n<b>".join(format_text) + "</b>"
+
+
+async def start_parsing_for_active_users():
+    conn_sub = sqlite3.connect('subscriptions.db')
+    cursor = conn_sub.cursor()
+    cursor.execute('SELECT user_id FROM subscriptions WHERE parser_active = 1')
+    active_users = cursor.fetchall()
+    conn_sub.close()
+
+    tasks = []
+    for active_user in active_users:
+        user_id = active_user[0]
+        if user_id not in is_running or not is_running[user_id]:
+            tasks.append(parse_and_send_notifications(user_id))
+
+    if tasks:
+        await asyncio.gather(*tasks)
 
 
 async def parse_and_send_notifications(user_id):
     global is_running
-    is_running = True
-    while is_running:
-        await asyncio.sleep(2)  # 3600 секунд = 1 час
+    is_running[user_id] = True  # Устанавливаем состояние парсера для данного пользователя
+    while is_running.get(user_id, False):  # Проверяем состояние парсера для данного пользователя
+        await asyncio.sleep(5)  # 3600 секунд = 1 час
         # Выполняем парсинг
         new_ad_text = get_all_ads()
 
@@ -55,7 +77,13 @@ async def parse_and_send_notifications(user_id):
 
             if result and result[0] != 1:
                 # Останавливаем парсинг
-                is_running = False
+                is_running[user_id] = False
+                # Устанавливаем значение parser_active в 0
+                conn_sub = sqlite3.connect('subscriptions.db')
+                cursor = conn_sub.cursor()
+                cursor.execute('UPDATE subscriptions SET parser_active = 0 WHERE user_id = ?', (user_id,))
+                conn_sub.commit()
+                conn_sub.close()
                 # Отправляем сообщение о завершении подписки
                 await bot.send_message(user_id,
                                        "Ваша подписка закончилась. Чтобы продолжить использование парсера, подпишитесь заново.")
@@ -63,12 +91,6 @@ async def parse_and_send_notifications(user_id):
         # Ждем некоторое время перед следующим парсингом
         print(is_running)
         await asyncio.sleep(3)
-
-
-def format_message(ad_text):
-    # Функция для форматирования текста объявления с использованием HTML-тега <b>
-    format_text = ad_text.split('\n')
-    return "<b>" + "</b>\n<b>".join(format_text) + "</b>"
 
 
 # Роутер основного меню..
@@ -97,7 +119,8 @@ async def get_to_main(query: CallbackQuery, callback_data: MyCallBack):
 async def callback_info(query: CallbackQuery, callback_data: MyCallBack):
     await query.answer("Информация о парсинге")
     await query.message.edit_text(
-        'Парсинг происходит по самым новым объявлениям по Айфонам в городе Челябинск\n\nЕсли есть вопросы или нужен парсер по другим городам и продуктам пишите @Azelisi и @holyd4mn',
+        'Парсинг происходит по самым новым объявлениям по Айфонам в городе Челябинск\n\nЕсли есть вопросы или нужен парсер по другим городам и продуктам пишите'
+        ' @Azelisi и @holyd4mn\n\n  При использовании парсера вы соглашаетесь с отказом от ответственности',
         reply_markup=return_to_main_kb)
     print(f'{query.data} and {type(query.data)}')
 
@@ -136,32 +159,47 @@ async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
 
     # Проверяем, использовал ли пользователь уже пробную подписку
     cursor.execute('SELECT user_trial_status, user_subtime FROM subscriptions WHERE user_id = ?', (user_id,))
-    trial_status, expiration_time = cursor.fetchone()
+    row = cursor.fetchone()
 
-    if trial_status:
-        # Если пользователь уже использовал пробную подписку, отправляем сообщение об этом
-        await query.message.answer("Вы уже использовали пробную подписку.", reply_markup=menu_kb)
-    else:
-        # Если пользователь еще не использовал пробную подписку, добавляем или обновляем запись в базе данных
-        trial_duration = 24  # Продолжительность пробной подписки на 1 день
-        if expiration_time is not None:
-            # Если у пользователя уже есть срок истечения подписки, добавляем к нему продолжительность пробной подписки
-            expiration_time += trial_duration
+    if row:
+        trial_status, expiration_time = row
+        if trial_status:
+            # Если пользователь уже использовал пробную подписку, отправляем сообщение об этом
+            await query.message.answer("Вы уже использовали пробную подписку.", reply_markup=menu_kb)
         else:
-            # Если у пользователя нет срока истечения подписки, устанавливаем продолжительность пробной подписки
-            expiration_time = trial_duration
+            # Если пользователь еще не использовал пробную подписку, добавляем или обновляем запись в базе данных
+            trial_duration = 168  # Продолжительность пробной подписки на 1 день
+            if expiration_time is not None:
+                # Если у пользователя уже есть срок истечения подписки, добавляем к нему продолжительность пробной подписки
+                expiration_time += trial_duration
+            else:
+                # Если у пользователя нет срока истечения подписки, устанавливаем продолжительность пробной подписки
+                expiration_time = trial_duration
 
+            cursor.execute('''
+                INSERT INTO subscriptions (user_id, user_subtime, user_substatus, user_trial_status)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(user_id) DO UPDATE SET user_subtime = ?, user_substatus = ?, user_trial_status = ?
+            ''', (user_id, expiration_time, True, True, expiration_time, True, True))
+
+            conn.commit()
+            conn.close()
+
+            await query.message.answer(
+                "Пробная подписка оформлена на неделю",
+                parse_mode='HTML', reply_markup=menu_kb)
+    else:
+        # Если запись о пользователе отсутствует, создаем новую запись с пробной подпиской
+        expiration_time = 168  # Продолжительность пробной подписки на неделю
         cursor.execute('''
             INSERT INTO subscriptions (user_id, user_subtime, user_substatus, user_trial_status)
             VALUES (?, ?, ?, ?)
-            ON CONFLICT(user_id) DO UPDATE SET user_subtime = ?, user_substatus = ?, user_trial_status = ?
-        ''', (user_id, expiration_time, True, True, expiration_time, True, True))
-
+        ''', (user_id, expiration_time, True, True))
         conn.commit()
         conn.close()
 
         await query.message.answer(
-            "Пробная подписка оформлена на 1 день",
+            "Пробная подписка оформлена на неделю",
             parse_mode='HTML', reply_markup=menu_kb)
 
 
@@ -201,16 +239,25 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
 
     cursor.execute('SELECT user_substatus FROM subscriptions WHERE user_id=?', (user_id,))
     result = cursor.fetchone()
+    cursor.execute('SELECT parser_active FROM subscriptions WHERE user_id=?', (user_id,))
+    parser_active = cursor.fetchone()
+    conn_sub.close()
 
-    if result and result[0] == 1:
+    if result and result[0] == 1 and parser_active and parser_active[0] == 0:
+        conn_sub = sqlite3.connect('subscriptions.db')
+        cursor = conn_sub.cursor()
+        cursor.execute('UPDATE subscriptions SET parser_active = 1 WHERE user_id = ?', (user_id,))
+        conn_sub.commit()
+        conn_sub.close()
+
         # Отправляем уведомление о начале парсинга
         await query.message.answer(
             "Парсинг запущен 🚀\nТы будешь получать уведомления о новых объявлениях\n\nДля остановки напиши - <b>Стоп</b>",
             parse_mode="HTML")
         # Запускаем асинхронную функцию, которая будет выполнять парсинг и отправлять уведомления
         await asyncio.create_task(parse_and_send_notifications(user_id))
-        if not is_running:
-            await query.message.answer("Парсер остановлен 😴", reply_markup=menu_kb)
+    elif parser_active and parser_active[0] == 1:
+        await query.message.answer("Парсинг уже запущен для вашего пользователя!")
     else:
         # Если пользователь не подписан, отправляем ему сообщение о необходимости подписки
         await query.message.answer("Для использования парсера необходимо подписаться!", reply_markup=menu_kb)
@@ -221,9 +268,17 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
 
 @router.message(F.text.lower().in_(['/stop', 'стоп', 'stop', 'cnjg']))
 async def stop_pars(message: Message):
-    global is_running
     user_id = message.from_user.id
-    if user_id in sent_notifications:
-        del sent_notifications[user_id]  # Удаляем все отправленные уведомления для пользователя
+    if user_id in is_running:
+        del is_running[user_id]  # Удаляем состояние парсера для данного пользователя
+        del sent_notifications[user_id]
         clear_json(user_id)
-        is_running = False  # Это необходимо, чтобы парсер перестал запускаться для всех пользователей
+        await bot.send_message(user_id, "Парсер остановлен 😴",
+                               reply_markup=menu_kb)  # Отправляем уведомление о том, что парсер остановлен
+
+        # Устанавливаем значение parser_active в 0
+        conn_sub = sqlite3.connect('subscriptions.db')
+        cursor = conn_sub.cursor()
+        cursor.execute('UPDATE subscriptions SET parser_active = 0 WHERE user_id = ?', (user_id,))
+        conn_sub.commit()
+        conn_sub.close()
