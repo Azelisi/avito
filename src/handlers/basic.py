@@ -1,5 +1,6 @@
 import asyncio
 import sqlite3
+from datetime import datetime
 
 from aiogram import F, types, Router
 from aiogram.types import Message, CallbackQuery
@@ -43,6 +44,22 @@ async def parse_and_send_notifications(user_id):
             # Добавляем отправленное уведомление в список уже отправленных для данного пользователя
             sent_notifications[user_id].add(formatted_message)
 
+        # Проверяем подписку пользователя каждые 6 часов
+        if datetime.now().hour % 6 == 0:
+            conn_sub = sqlite3.connect('subscriptions.db')
+            cursor = conn_sub.cursor()
+            cursor.execute('SELECT user_substatus FROM subscriptions WHERE user_id=?', (user_id,))
+            result = cursor.fetchone()
+            conn_sub.close()
+            print('Проверка подписки')
+
+            if result and result[0] != 1:
+                # Останавливаем парсинг
+                is_running = False
+                # Отправляем сообщение о завершении подписки
+                await bot.send_message(user_id,
+                                       "Ваша подписка закончилась. Чтобы продолжить использование парсера, подпишитесь заново.")
+
         # Ждем некоторое время перед следующим парсингом
         print(is_running)
         await asyncio.sleep(3)
@@ -79,8 +96,9 @@ async def get_to_main(query: CallbackQuery, callback_data: MyCallBack):
 @router.callback_query(MyCallBack.filter(F.foo == 'info'))
 async def callback_info(query: CallbackQuery, callback_data: MyCallBack):
     await query.answer("Информация о парсинге")
-    await query.message.edit_text('Важно знать перед использованием!\nВот как выполняется парсинг',
-                                  reply_markup=return_to_main_kb)
+    await query.message.edit_text(
+        'Парсинг происходит по самым новым объявлениям по Айфонам в городе Челябинск\n\nЕсли есть вопросы или нужен парсер по другим городам и продуктам пишите @Azelisi и @holyd4mn',
+        reply_markup=return_to_main_kb)
     print(f'{query.data} and {type(query.data)}')
 
 
@@ -108,6 +126,43 @@ async def top_up_user_crypt(query: CallbackQuery, callback_data: MyCallBack):
     await query.message.edit_text(
         "Оформить подписку\n\n7 дней - <b>599 RUB</b>\n14 дней - <b>999 RUB</b>\n30 дней - <b>1799 RUB</b>",
         parse_mode='HTML', reply_markup=how_many_day_sub_crypt)
+
+
+@router.callback_query(MyCallBack.filter(F.foo == 'pay_trial'))
+async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
+    user_id = query.from_user.id
+    conn = sqlite3.connect('subscriptions.db')
+    cursor = conn.cursor()
+
+    # Проверяем, использовал ли пользователь уже пробную подписку
+    cursor.execute('SELECT user_trial_status, user_subtime FROM subscriptions WHERE user_id = ?', (user_id,))
+    trial_status, expiration_time = cursor.fetchone()
+
+    if trial_status:
+        # Если пользователь уже использовал пробную подписку, отправляем сообщение об этом
+        await query.message.answer("Вы уже использовали пробную подписку.", reply_markup=menu_kb)
+    else:
+        # Если пользователь еще не использовал пробную подписку, добавляем или обновляем запись в базе данных
+        trial_duration = 24  # Продолжительность пробной подписки на 1 день
+        if expiration_time is not None:
+            # Если у пользователя уже есть срок истечения подписки, добавляем к нему продолжительность пробной подписки
+            expiration_time += trial_duration
+        else:
+            # Если у пользователя нет срока истечения подписки, устанавливаем продолжительность пробной подписки
+            expiration_time = trial_duration
+
+        cursor.execute('''
+            INSERT INTO subscriptions (user_id, user_subtime, user_substatus, user_trial_status)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET user_subtime = ?, user_substatus = ?, user_trial_status = ?
+        ''', (user_id, expiration_time, True, True, expiration_time, True, True))
+
+        conn.commit()
+        conn.close()
+
+        await query.message.answer(
+            "Пробная подписка оформлена на 1 день",
+            parse_mode='HTML', reply_markup=menu_kb)
 
 
 @router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_7'))
@@ -161,7 +216,7 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
         await query.message.answer("Для использования парсера необходимо подписаться!", reply_markup=menu_kb)
 
 
-# Роутер остановки парсера 
+# Роутер остановки парсера
 ## Да, по-другому не смог, потому в рот ебал это while TRUE
 
 @router.message(F.text.lower().in_(['/stop', 'стоп', 'stop', 'cnjg']))
