@@ -1,13 +1,9 @@
 import asyncio
 import sqlite3
-import time
+import pyshorteners
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
-import pyshorteners
-from src.config.cfg import url_Avito
-from src.parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
-
 from src.config.cfg import url_Avito
 from src.parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
 
@@ -29,6 +25,7 @@ def shorten_url(long_url):
 
 async def pars():
     try:
+        print("Начало парсера")
         driver = webdriver.Chrome(options=options)
         driver.get(url)
         html = driver.page_source
@@ -71,7 +68,7 @@ async def pars():
             if not is_ad_in_database(ad_text):
                 # Отправляем уведомление в Telegram
                 print(f"Новая запись: {title.text}\nЦена: {price.text}")
-                save_ad_to_database(ad_text)
+                await save_ad_to_database(ad_text)
 
                 print("Запись в базу")
                 # Здесь скрипт возвращает ad_text
