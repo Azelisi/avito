@@ -10,8 +10,10 @@ import asyncio
 from src.handlers.basic import start_parsing_for_active_users
 
 
-async def run_parser_wrapper(loop):
-    await run_parser()
+def run_parser_wrapper():
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run_parser())
+
 
 async def on_startup(dispatcher):
     print("Бот запущен")
