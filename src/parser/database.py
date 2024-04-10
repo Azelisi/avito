@@ -4,7 +4,6 @@ conn = sqlite3.connect('ads.db')
 cursor = conn.cursor()
 
 
-
 # Создание таблицы ads, если она не существует
 def create_table_ads():
     cursor.execute('''
@@ -13,6 +12,18 @@ def create_table_ads():
            text TEXT
        )
    ''')
+    conn.commit()
+
+
+def create_table_subscriptions():
+    cursor.execute('''
+          CREATE TABLE IF NOT EXISTS subscriptions (
+               user_id INTEGER PRIMARY KEY,
+               user_subtime INTEGER,
+               user_substatus BOOLEAN,
+               user_trial_status BOOLEAN
+           )
+      ''')
     conn.commit()
 
 

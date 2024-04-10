@@ -1,25 +1,25 @@
-import sqlite3
-
 from aiogram import F
 from aiogram.types import Message, CallbackQuery, LabeledPrice, PreCheckoutQuery
-from datetime import datetime, timedelta
 from src.config.cfg import bot
 from src.keyboards.inline import return_to_main_kb, menu_kb, MyCallBack
 from src.handlers.basic import router
 
 import asyncio
+import sqlite3
+
+from src.parser.database import create_table_subscriptions
 
 
-## Обработчик токенов..
-@router.callback_query(MyCallBack.filter(F.foo == 'sub' and F.bar == 7))
+# Обработчик токенов..
+@router.callback_query(MyCallBack.filter(F.foo == 'sub_bank' and F.bar == 7))
 async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
-    await query.message.edit_text('Отлично!\n', reply_markup=return_to_main_kb)
+    await query.message.edit_text('Ждем твоей оплаты😉\n', reply_markup=return_to_main_kb)
     await bot.send_invoice(
         chat_id=query.message.chat.id,
         title="Подписка",
         description="Подписка на 7 дней",
         payload=f'test-invoice-payload',
-        provider_token='381764678:TEST:68132',
+        provider_token='381764678:TEST:80119',
         currency='RUB',
         prices=[
             LabeledPrice(
@@ -47,15 +47,15 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
     )
 
 
-@router.callback_query(MyCallBack.filter(F.foo == 'sub' and F.bar == 14))
+@router.callback_query(MyCallBack.filter(F.foo == 'sub_bank' and F.bar == 14))
 async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
-    await query.message.edit_text('Отлично!\n', reply_markup=return_to_main_kb)
+    await query.message.edit_text('Ждем твоей оплаты😉\n', reply_markup=return_to_main_kb)
     await bot.send_invoice(
         chat_id=query.message.chat.id,
         title="Подписка",
         description="Подписка на 14 дней",
         payload=f'test-invoice-payload',
-        provider_token='381764678:TEST:68132',
+        provider_token='381764678:TEST:80119',
         currency='RUB',
         prices=[
             LabeledPrice(
@@ -83,15 +83,15 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
     )
 
 
-@router.callback_query(MyCallBack.filter(F.foo == 'sub' and F.bar == 30))
+@router.callback_query(MyCallBack.filter(F.foo == 'sub_bank' and F.bar == 30))
 async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
-    await query.message.edit_text('Отлично!\n', reply_markup=return_to_main_kb)
+    await query.message.edit_text('Ждем твоей оплаты😉\n', reply_markup=return_to_main_kb)
     await bot.send_invoice(
         chat_id=query.message.chat.id,
         title="Подписка",
         description="Подписка на 30 дней",
         payload=f'test-invoice-payload',
-        provider_token='381764678:TEST:68132',
+        provider_token='381764678:TEST:80119',
         currency='RUB',
         prices=[
             LabeledPrice(
@@ -117,8 +117,6 @@ async def top_up_user(query: CallbackQuery, callback_data: MyCallBack):
         reply_markup=None,
         request_timeout=30
     )
-
-
 @router.pre_checkout_query()
 async def process_pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
     await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
@@ -143,14 +141,15 @@ async def succesfull_payment(message: Message):
     # Записали user_id в бд и установили время окончания
     conn_sub = sqlite3.connect('subscriptions.db')
     cursor = conn_sub.cursor()
-    cursor.execute('''
-           CREATE TABLE IF NOT EXISTS subscriptions (
-               user_id INTEGER PRIMARY KEY,
-               user_subtime INTEGER,
-               user_substatus BOOLEAN
-           )
-       ''')
-    conn_sub.commit()
+    create_table_subscriptions()
+    # Получаем текущее значение user_subtime из базы данных
+    cursor.execute('SELECT user_subtime FROM subscriptions WHERE user_id=?', (user_id,))
+    current_subtime = cursor.fetchone()
+
+    if current_subtime is not None:
+        # Если пользователь уже есть в базе, прибавляем новое значение к текущему
+        user_subtime += current_subtime[0]
+
     # Ниже выполняет SQL-запрос для вставки или обновления записи в таблице 'subscriptions'. Используется оператор
     # INSERT OR REPLACE INTO, который вставляет новую запись, если запись с таким user_id не существует, или заменяет
     # существующую запись, если она уже есть. Запрос содержит параметризованные значения (?, ?, ?),

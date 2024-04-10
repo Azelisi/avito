@@ -1,9 +1,10 @@
+import asyncio
 import sqlite3
 import time
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
-
+import pyshorteners
 from src.config.cfg import url_Avito
 from src.parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
 
@@ -21,7 +22,12 @@ options = webdriver.ChromeOptions()
 options.add_argument("--headless")
 
 
-def pars():
+def shorten_url(long_url):
+    short_link = pyshorteners.Shortener()
+    return short_link.tinyurl.short(long_url)
+
+
+async def pars():
     try:
         driver = webdriver.Chrome(options=options)
         driver.get(url)
@@ -39,7 +45,7 @@ def pars():
         title = bs.find("h3", class_="styles-module-size_l_compensated-OK6a6")
         price = bs.find("div", class_="iva-item-priceStep-uq2CQ")
         description = bs.find("div", class_="iva-item-descriptionStep-C0ty1")
-        street = bs.find("div", class_="geo-root-zPwRk")
+        # street = bs.find("div", class_="geo-root-zPwRk")
         link_product_source = bs.find("div", class_="iva-item-title-py3i_")
         link_product = link_product_source.find("a", class_="styles-module-root-QmppR")
         print("Парсер работет")
@@ -49,16 +55,16 @@ def pars():
 
         # Проход по каждому блоку с информацией о заявке
         for ad_block in ad_blocks:
-
+            shortened_img_url = shorten_url(img['src'])
             # Формируем текст объявления
             ad_text = (
-                f"\n{img['src']}\n"
+                f"Ссылка:\n"
+                f"https://www.avito.ru{link_product['href']}\n"
                 f"Название: {title.text}\n"
                 f"Цена: {price.text}\n"
-                f"Описание: {description.text}\n"
-                f"Район: {street.text}\n"
-                f"Ссылка: "
-                f"https://www.avito.ru{link_product['href']}"
+                f"Описание: {description.text}\n\n"
+                # f"Район: {street.text}\n"
+                f"Картинка: {shortened_img_url}"
             )
 
             # Проверяем, есть ли объявление уже в базе данных
@@ -74,13 +80,17 @@ def pars():
             else:
                 print("Вернулся 0")
                 return 0
-
     except Exception as errorException:
         print(f"Произошла ошибка: {errorException}")
-        print("Перезапуск программы через 30 секунд...")
-        time.sleep(30)  # Подождем перед следующей попыткой
+        print("Перезапуск программы через 5 секунд...")
+        await asyncio.sleep(5)  # Подождем перед следующей попыткой
 
 
 conn.close()
 
-pars()
+
+async def run_parser():
+    while True:
+        await pars()
+        await asyncio.sleep(10)  # Используем asyncio.sleep вместо time.sleep
+
