@@ -19,5 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем исходный код приложения в контейнер
 COPY . /app/
 
+EXPOSE 8080
+
 # Запускаем оба файла в контейнере
 CMD ["python", "manager.py", "parser_main.py"]
