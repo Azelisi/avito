@@ -1,6 +1,6 @@
 from parser_main import run_parser
 from src.config.cfg import bot, dp
-from src.handlers import basic, payments
+from src.handlers import basic
 from src.config.timer import timer_db
 
 import multiprocessing
