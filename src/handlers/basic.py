@@ -255,7 +255,7 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
             "Парсинг запущен 🚀\nТы будешь получать уведомления о новых объявлениях\n\nДля остановки напиши - <b>Стоп</b>",
             parse_mode="HTML")
         # Запускаем асинхронную функцию, которая будет выполнять парсинг и отправлять уведомления
-        # await asyncio.create_task(parse_and_send_notifications(user_id))
+        await asyncio.create_task(parse_and_send_notifications(user_id))
     elif parser_active and parser_active[0] == 1:
         await query.message.answer("Парсинг уже запущен для вашего пользователя!")
     else:
