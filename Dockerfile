@@ -22,4 +22,4 @@ COPY . /app/
 EXPOSE 8080
 
 # Запускаем оба файла в контейнере
-CMD ["python", "manager.py", "parser_main.py"]
+CMD ["python", "manager.py"]

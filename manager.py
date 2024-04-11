@@ -15,7 +15,7 @@ def run_parser_wrapper():
     loop.run_until_complete(run_parser())
 
 
-async def on_startup(dispatcher):
+async def on_startup():
     print("Бот запущен")
     # Запуск асинхронной функции timer, start_parsing, запуск парсера
     asyncio.create_task(timer_db())
