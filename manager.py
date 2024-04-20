@@ -1,4 +1,3 @@
-from parser_main import run_parser
 from src.config.cfg import bot, dp
 from src.handlers import basic
 from src.config.timer import timer_db
@@ -7,21 +6,11 @@ import multiprocessing
 import logging
 import asyncio
 
-from src.handlers.basic import start_parsing_for_active_users
-
-
-def run_parser_wrapper():
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_parser())
-
 
 async def on_startup():
     print("Бот запущен")
     # Запуск асинхронной функции timer, start_parsing, запуск парсера
     asyncio.create_task(timer_db())
-    asyncio.create_task(start_parsing_for_active_users())
-    parser_process = multiprocessing.Process(target=run_parser_wrapper)
-    parser_process.start()
 
 
 async def main():
