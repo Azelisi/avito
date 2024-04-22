@@ -4,6 +4,7 @@ import pyshorteners
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from config.cfg import url_Avito
 from parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
 
@@ -14,8 +15,14 @@ cursor = conn.cursor()
 create_table_ads()
 
 url = url_Avito
+service = Service()
 options = webdriver.ChromeOptions()
+options.add_argument("start-maximized")
+options.add_argument("disable-infobars")
+options.add_argument("--disable-extensions")
+options.add_argument("--no-sandbox")
 options.add_argument("--headless")
+options.add_argument("--disable-dev-shm-usage")
 
 
 def shorten_url(long_url):
@@ -26,7 +33,7 @@ def shorten_url(long_url):
 async def pars():
     try:
         print("Начало парсера")
-        driver = webdriver.Chrome(options=options)
+        driver = webdriver.Chrome(options=options, service=service)
         driver.get(url)
         html = driver.page_source
         bs = BeautifulSoup(html, "html.parser")
