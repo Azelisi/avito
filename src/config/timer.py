@@ -1,7 +1,6 @@
 import asyncio
 import sqlite3
 
-from src.handlers.basic import parse_and_send_notifications
 
 
 async def timer_db():

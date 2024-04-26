@@ -3,7 +3,6 @@ import json
 def add_json(id, content):
     with open('db_dub.json', 'r', encoding='utf-8') as read_file:
         data = json.load(read_file)
-        print(data)
         if data.get(str(id)) == None: 
             with open('db_dub.json', 'w', encoding='utf-8') as write_file:
                 data_to_load = {
@@ -32,7 +31,6 @@ def read_json(id):
 def clear_json(id): 
     with open('db_dub.json', 'r', encoding='utf-8') as read_file:
         data = json.load(read_file)
-        print(data)
         if data.get(str(id)) != None: 
             data[str(id)] = []
             with open('db_dub.json', 'w', encoding='utf-8') as write_file:

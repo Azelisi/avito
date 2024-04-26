@@ -1,15 +1,14 @@
 import asyncio
 import sqlite3
-import time
+from time import sleep
+
+import pyshorteners
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
-import pyshorteners
-from src.config.cfg import url_Avito
-from src.parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
-
-from src.config.cfg import url_Avito
-from src.parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
+from selenium.webdriver.chrome.service import Service
+from config.cfg import url_Avito
+from parser.database import create_table_ads, is_ad_in_database, save_ad_to_database
 
 # Создаем подключение к базе данных
 conn = sqlite3.connect('ads.db')
@@ -18,8 +17,14 @@ cursor = conn.cursor()
 create_table_ads()
 
 url = url_Avito
+service = Service()
 options = webdriver.ChromeOptions()
+options.add_argument("start-maximized")
+options.add_argument("disable-infobars")
+options.add_argument("--disable-extensions")
+options.add_argument("--no-sandbox")
 options.add_argument("--headless")
+options.add_argument("--disable-dev-shm-usage")
 
 
 def shorten_url(long_url):
@@ -27,8 +32,9 @@ def shorten_url(long_url):
     return short_link.tinyurl.short(long_url)
 
 
-async def pars():
+def pars():
     try:
+        print("Начало парсера")
         driver = webdriver.Chrome(options=options)
         driver.get(url)
         html = driver.page_source
@@ -42,12 +48,12 @@ async def pars():
         # Здесь вы можете извлекать нужную информацию из блока
         # Например, название и цену
         img = bs.find("img", class_="photo-slider-image-YqMGj")
-        title = bs.find("h3", class_="styles-module-size_l_compensated-OK6a6")
+        title = bs.find("h3", class_="styles-module-size_l_compensated-_l_w8")
         price = bs.find("div", class_="iva-item-priceStep-uq2CQ")
         description = bs.find("div", class_="iva-item-descriptionStep-C0ty1")
         # street = bs.find("div", class_="geo-root-zPwRk")
         link_product_source = bs.find("div", class_="iva-item-title-py3i_")
-        link_product = link_product_source.find("a", class_="styles-module-root-QmppR")
+        link_product = link_product_source.find("a", class_="styles-module-root-YeOVk")
         print("Парсер работет")
 
         # Закрытие веб-драйвера
@@ -83,14 +89,16 @@ async def pars():
     except Exception as errorException:
         print(f"Произошла ошибка: {errorException}")
         print("Перезапуск программы через 5 секунд...")
-        await asyncio.sleep(5)  # Подождем перед следующей попыткой
+        sleep(5)  # Подождем перед следующей попыткой
 
 
 conn.close()
 
 
-async def run_parser():
+def run_parser():
     while True:
-        await pars()
-        await asyncio.sleep(10)  # Используем asyncio.sleep вместо time.sleep
+        pars()
+        sleep(10)  # Используем asyncio.sleep вместо time.sleep
 
+
+run_parser()

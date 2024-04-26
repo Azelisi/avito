@@ -119,7 +119,8 @@ async def get_to_main(query: CallbackQuery, callback_data: MyCallBack):
 async def callback_info(query: CallbackQuery, callback_data: MyCallBack):
     await query.answer("Информация о парсинге")
     await query.message.edit_text(
-        'Парсинг происходит по самым новым объявлениям по Айфонам в городе Челябинск\n\nЕсли есть вопросы или нужен парсер по другим городам и продуктам пишите @Azelisi и @holyd4mn',
+        'Парсинг происходит по самым новым объявлениям по Айфонам в городе Челябинск\n\nЕсли есть вопросы или нужен парсер по другим городам и продуктам пишите'
+        ' @Azelisi и @holyd4mn\n\n  При использовании парсера вы соглашаетесь с отказом от ответственности',
         reply_markup=return_to_main_kb)
     print(f'{query.data} and {type(query.data)}')
 
