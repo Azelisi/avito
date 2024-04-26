@@ -1,8 +1,8 @@
 from src.config.cfg import bot, dp
 from src.handlers import basic
 from src.config.timer import timer_db
+from src.handlers.basic import start_parsing_for_active_users
 
-import multiprocessing
 import logging
 import asyncio
 
@@ -11,6 +11,7 @@ async def on_startup():
     print("Бот запущен")
     # Запуск асинхронной функции timer, start_parsing, запуск парсера
     asyncio.create_task(timer_db())
+    asyncio.create_task(start_parsing_for_active_users())
 
 
 async def main():
