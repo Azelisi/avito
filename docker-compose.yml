@@ -10,7 +10,7 @@ services:
       - 8080:8080
   parser: 
     build:
-      context: ./src
+      context: ./src/
       dockerfile: Dockerfile
     container_name: parser_main
     restart: always
