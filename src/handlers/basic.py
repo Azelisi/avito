@@ -122,7 +122,6 @@ async def callback_info(query: CallbackQuery, callback_data: MyCallBack):
         'Парсинг происходит по самым новым объявлениям по Айфонам в городе Челябинск\n\nЕсли есть вопросы или нужен парсер по другим городам и продуктам пишите'
         ' @Azelisi и @holyd4mn\n\n  При использовании парсера вы соглашаетесь с отказом от ответственности',
         reply_markup=return_to_main_kb)
-    print(f'{query.data} and {type(query.data)}')
 
 
 # Роутер для пополнения счёта пользователя..
@@ -228,6 +227,7 @@ async def top_up_user_crypt_30(query: CallbackQuery, callback_data: MyCallBack):
 # Проверка в базе на то что пользователь подписан (то есть, смотрим в базу данных user_id и sub_status и если sub_status равен 1 то всё заебисб)
 @router.callback_query(MyCallBack.filter(F.foo == 'parsing'))
 async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCallBack):
+    await query.answer("")
     global parser_states
     user_id = query.from_user.id
 

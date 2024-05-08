@@ -35,7 +35,7 @@ def shorten_url(long_url):
 def pars():
     try:
         print("Начало парсера")
-        driver = webdriver.Chrome(options=options)
+        driver = webdriver.Chrome(options=options, service=service)
         driver.get(url)
         html = driver.page_source
         bs = BeautifulSoup(html, "html.parser")
