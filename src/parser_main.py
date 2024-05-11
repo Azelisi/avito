@@ -29,7 +29,10 @@ options.add_argument("--disable-dev-shm-usage")
 
 def shorten_url(long_url):
     short_link = pyshorteners.Shortener()
-    return short_link.tinyurl.short(long_url)
+    try:
+        return short_link.tinyurl.short(long_url)
+    except Exception as e:
+        return long_url
 
 
 def pars():
