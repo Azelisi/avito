@@ -16,7 +16,6 @@ async def timer_db():
             user_id, expiration_time, is_subscribed = subscription
             # Уменьшаем время подписки на 12 часов
             expiration_time -= 12
-            print('СЧИТАЕМ')
             # Если время подписки меньше или равно 0, устанавливаем статус подписки в False
             if expiration_time <= 0:
                 expiration_time = 0

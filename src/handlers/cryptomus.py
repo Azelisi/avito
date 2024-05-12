@@ -10,6 +10,8 @@ def generate_headers(data: str) -> dict[str, Any]:
         base64.b64encode(data.encode('ascii')) + API_CRYPT.encode('ascii')
     ).hexdigest()
 
+    return {"merchant": MERCHANT_UID, "sign": sign, "content-type": "application/json"}
+
 async def create_invoice(user_id: int, amount) -> Any:
     async with ClientSession() as session:
         json_dumps = json.dumps({

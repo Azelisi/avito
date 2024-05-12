@@ -5,12 +5,12 @@ from datetime import datetime
 from aiogram import F, types, Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardButton, InlineKeyboardMarkup
 
 from src.config.cfg import bot
 from src.keyboards.inline import menu_kb, return_to_main_kb, how_many_day_sub_banks, how_many_day_sub_crypt, MyCallBack, \
     type_of_payment
-from src.handlers.cryptomus import create_invoice
+from src.handlers.cryptomus import create_invoice, get_invoice
 from src.parser.database import get_all_ads
 from src.config.check_dub import add_json, read_json, clear_json
 
@@ -89,7 +89,6 @@ async def parse_and_send_notifications(user_id):
                                        "Ваша подписка закончилась. Чтобы продолжить использование парсера, подпишитесь заново.")
 
         # Ждем некоторое время перед следующим парсингом
-        print(is_running)
         await asyncio.sleep(3)
 
 
@@ -203,25 +202,40 @@ async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
 
 
 @router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_7'))
-async def top_up_user_crypt_7(query: CallbackQuery, callback_data: MyCallBack):
+async def top_up_user_crypt_7(query: CallbackQuery):
     invoice = await create_invoice(query.message.from_user.id, 599)
-    markup = InlineKeyboardBuilder().button(text="✅ Я оплатил", callback_data=f'o_{invoice["result"]["uuid"]}')
-    await query.message.edit_text(f"Ваш чек: {invoice['result']['url']} ", reply_markup=markup)
+    markup_crypt = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Я оплатил", callback_data=f'o_{invoice["result"]["uuid"]}')]
+    ])
+    await query.message.reply(f"Ваш чек:\n<b>{invoice['result']['url']}</b>", reply_markup=markup_crypt, parse_mode="HTML")
 
 
 @router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_14'))
-async def top_up_user_crypt_14(query: CallbackQuery, callback_data: MyCallBack):
+async def top_up_user_crypt_14(query: CallbackQuery):
     invoice = await create_invoice(query.message.from_user.id, 999)
-    markup = InlineKeyboardBuilder().button(text="✅ Я оплатил", callback_data=f'o_{invoice["result"]["uuid"]}')
-    await query.message.edit_text(f"Ваш чек: {invoice['result']['url']} ", reply_markup=markup)
+    markup_crypt = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Я оплатил", callback_data=f'o_{invoice["result"]["uuid"]}')]
+    ])
+    await query.message.reply(f"Ваш чек:\n<b>{invoice['result']['url']}</b>", reply_markup=markup_crypt, parse_mode="HTML")
 
 
 @router.callback_query(MyCallBack.filter(F.foo == 'sub_crypt_30'))
-async def top_up_user_crypt_30(query: CallbackQuery, callback_data: MyCallBack):
+async def top_up_user_crypt_30(query: CallbackQuery):
     invoice = await create_invoice(query.message.from_user.id, 1799)
-    markup = InlineKeyboardBuilder().button(text="✅ Я оплатил", callback_data=f'o_{invoice["result"]["uuid"]}')
-    await query.message.edit_text(f"Ваш чек: {invoice['result']['url']} ", reply_markup=markup)
+    markup_crypt = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Я оплатил", callback_data=f'o_{invoice["result"]["uuid"]}')]
+    ])
+    await query.message.reply(f"Ваш чек:\n<b>{invoice['result']['url']}</b>", reply_markup=markup_crypt, parse_mode="HTML")
 
+@router.callback_query(F.data.startswith("o_"))
+async def check_crypto_order(query: CallbackQuery): 
+    invoice = await get_invoice(query.data.split("_")[1])
+    if invoice["result"]["status"] == "paid": 
+        await query.answer()
+        await query.message.answer("Счёт оплачен 😉")
+    else:
+        await query.answer()
+        await query.message.answer("Похоже Вы не оплатили счёт ☹️")
 
 # Роутер парсинга..
 # Проверка в базе на то что пользователь подписан (то есть, смотрим в базу данных user_id и sub_status и если sub_status равен 1 то всё заебисб)
