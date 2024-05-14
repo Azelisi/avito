@@ -140,6 +140,13 @@ async def succesfull_payment(message: Message):
     user_substatus = True  # (Статус подписки (подписан или нет))
     # Записали user_id в бд и установили время окончания
     conn_sub = sqlite3.connect('subscriptions.db')
+    # conn = psycopg2.connect(
+    #    dbname="subscriptions",
+    #    user="postgres",
+    #    password="root",
+    #    host="localhost",
+    #    port="5432"
+    # )
     cursor = conn_sub.cursor()
     create_table_subscriptions()
     # Получаем текущее значение user_subtime из базы данных

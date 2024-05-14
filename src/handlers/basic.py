@@ -29,6 +29,13 @@ def format_message(ad_text):
 
 async def start_parsing_for_active_users():
     conn_sub = sqlite3.connect('subscriptions.db')
+    # conn = psycopg2.connect(
+    #    dbname="subscriptions",
+    #    user="postgres",
+    #    password="root",
+    #    host="localhost",
+    #    port="5432"
+    # )
     cursor = conn_sub.cursor()
     cursor.execute('SELECT user_id FROM subscriptions WHERE parser_active = 1')
     active_users = cursor.fetchall()
@@ -69,6 +76,13 @@ async def parse_and_send_notifications(user_id):
         # Проверяем подписку пользователя каждые 6 часов
         if datetime.now().hour % 6 == 0:
             conn_sub = sqlite3.connect('subscriptions.db')
+            # conn = psycopg2.connect(
+            #    dbname="subscriptions",
+            #    user="postgres",
+            #    password="root",
+            #    host="localhost",
+            #    port="5432"
+            # )
             cursor = conn_sub.cursor()
             cursor.execute('SELECT user_substatus FROM subscriptions WHERE user_id=?', (user_id,))
             result = cursor.fetchone()
@@ -79,6 +93,13 @@ async def parse_and_send_notifications(user_id):
                 # Останавливаем парсинг
                 is_running[user_id] = False
                 # Устанавливаем значение parser_active в 0
+                # conn = psycopg2.connect(
+                #    dbname="subscriptions",
+                #    user="postgres",
+                #    password="root",
+                #    host="localhost",
+                #    port="5432"
+                # )
                 conn_sub = sqlite3.connect('subscriptions.db')
                 cursor = conn_sub.cursor()
                 cursor.execute('UPDATE subscriptions SET parser_active = 0 WHERE user_id = ?', (user_id,))
@@ -152,6 +173,13 @@ async def top_up_user_crypt(query: CallbackQuery, callback_data: MyCallBack):
 @router.callback_query(MyCallBack.filter(F.foo == 'pay_trial'))
 async def top_up_user_trial(query: CallbackQuery, callback_data: MyCallBack):
     user_id = query.from_user.id
+    # conn = psycopg2.connect(
+    #    dbname="subscriptions",
+    #    user="postgres",
+    #    password="root",
+    #    host="localhost",
+    #    port="5432"
+    # )
     conn = sqlite3.connect('subscriptions.db')
     cursor = conn.cursor()
 
@@ -248,6 +276,13 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
     print(f"Start parsing cycle for user {user_id}, {query.data}")
 
     # Проверяем подписку пользователя
+    # conn = psycopg2.connect(
+    #    dbname="subscriptions",
+    #    user="postgres",
+    #    password="root",
+    #    host="localhost",
+    #    port="5432"
+    # )
     conn_sub = sqlite3.connect('subscriptions.db')
     cursor = conn_sub.cursor()
 
@@ -258,6 +293,13 @@ async def start_process_of_pars(query: types.CallbackQuery, callback_data: MyCal
     conn_sub.close()
 
     if result and result[0] == 1 and parser_active and parser_active[0] == 0:
+        # conn = psycopg2.connect(
+        #    dbname="subscriptions",
+        #    user="postgres",
+        #    password="root",
+        #    host="localhost",
+        #    port="5432"
+        # )
         conn_sub = sqlite3.connect('subscriptions.db')
         cursor = conn_sub.cursor()
         cursor.execute('UPDATE subscriptions SET parser_active = 1 WHERE user_id = ?', (user_id,))

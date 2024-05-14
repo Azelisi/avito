@@ -7,6 +7,13 @@ async def timer_db():
     while True:
         # Подключение к базе данных
         conn_sub = sqlite3.connect('subscriptions.db')
+        # conn = psycopg2.connect(
+        #    dbname="subscriptions",
+        #    user="postgres",
+        #    password="root",
+        #    host="localhost",
+        #    port="5432"
+        # )
         cursor = conn_sub.cursor()
         # Получаем все записи из таблицы subscriptions
         cursor.execute('SELECT user_id, user_subtime, user_substatus FROM subscriptions')

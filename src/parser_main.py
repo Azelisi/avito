@@ -1,9 +1,8 @@
-import asyncio
 import sqlite3
-from time import sleep
-
+import psycopg2
 import pyshorteners
 
+from time import sleep
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -12,6 +11,15 @@ from parser.database import create_table_ads, is_ad_in_database, save_ad_to_data
 
 # Создаем подключение к базе данных
 conn = sqlite3.connect('ads.db')
+# Создаем подключение к базе данных
+# conn = psycopg2.connect(
+#    dbname="subscriptions",
+#    user="postgres",
+#    password="root",
+#    host="localhost",
+#    port="5432"
+# )
+
 cursor = conn.cursor()
 
 create_table_ads()
