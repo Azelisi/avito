@@ -1,5 +1,4 @@
 import sqlite3
-import psycopg2
 import pyshorteners
 
 from time import sleep
@@ -59,12 +58,16 @@ def pars():
         # Здесь вы можете извлекать нужную информацию из блока
         # Например, название и цену
         img = bs.find("img", class_="photo-slider-image-YqMGj")
-        title = bs.find("h3", class_="styles-module-size_l_compensated-_l_w8")
+        title = bs.find("h3", class_="styles-module-size_l_compensated-KFJud")
         price = bs.find("div", class_="iva-item-priceStep-uq2CQ")
         description = bs.find("div", class_="iva-item-descriptionStep-C0ty1")
         # street = bs.find("div", class_="geo-root-zPwRk")
         link_product_source = bs.find("div", class_="iva-item-title-py3i_")
-        link_product = link_product_source.find("a", class_="styles-module-root-YeOVk")
+        link_product = bs.find("div", class_="iva-item-title-py3i_")
+
+        if link_product:
+            link_product = link_product_source.find("a", class_="styles-module-root-iSkj3")
+
         print("Парсер работет")
 
         # Закрытие веб-драйвера
