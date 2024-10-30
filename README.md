@@ -1,23 +1,24 @@
 # Avito Parser
 
-Проект для парсинга объявлений с Avito
-<p>(Проект не собирает важные данные пользователей согласно статье 13.11 КоАП РФ)
+A project for parsing ads with Avito
+### Avito is a big marketplace in the east, it is used to sell their stuff
+<p>(The project does not collect important user data according to Article 13.11 of the Administrative Code of the Russian Federation)
 
-## Запуск и тестирование
+## Launch and testing
 
-1. Откройте ветку `master`.
+1. Open the `master` branch.
 
-2. Установите зависимости проекта:
+2. Install the project dependencies:
 
-```sh
+``sh
 pip install -r src/config/requirements.txt
-```
-3. Запустите в консоли 2 файла
+``
+3. Run 2 files in the console
 
-Запустите в консоли 2 файла:
-```sh
+Run 2 files in the console:
+``sh
 python manager.py
-```
-```sh
+
+`` ``sh
 python src/parser/parser_main.py
-```
+``
